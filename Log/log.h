@@ -7,6 +7,7 @@
 #include <ctime>
 #include <iomanip>
 #include <fmt/core.h>
+#include <iostream>
 
 #include "block_queue.h"
 
@@ -26,6 +27,9 @@ public:
     // 写入日志
     template <class... Args>
     void write_log(int level, const std::string &file, int line, const std::string &format, Args... args);
+
+    template <class... Args>
+    void print(const std::string &file, int line, const std::string &format, Args... args);
     ~Log();
 
 private:
@@ -96,20 +100,32 @@ inline void Log::write_log(int level, const std::string &file, int line, const s
     }
 }
 
-#define LOG_INFO(format, args...)                                                 \
-    do                                                                            \
-    {                                                                             \
-        if (is_use_log)                                                           \
-        {                                                                         \
-            Log::getInstance()->write_log(0, __FILE__, __LINE__, format, ##args); \
-        }                                                                         \
+template <class... Args>
+inline void Log::print(const std::string &file, int line, const std::string &format, Args... args)
+{
+    std::cout << file << ":" << line << ": " << fmt::format(format, args...) << std::endl;
+}
+
+#define LOG_INFO(fmt, ...)                                                            \
+    do                                                                                   \
+    {                                                                                    \
+        if (is_use_log)                                                                  \
+        {                                                                                \
+            Log::getInstance()->write_log(0, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+        }                                                                                \
     } while (0)
 
-#define LOG_ERROR(format, args...)                                                \
-    do                                                                            \
-    {                                                                             \
-        if (is_use_log)                                                           \
-        {                                                                         \
-            Log::getInstance()->write_log(1, __FILE__, __LINE__, format, ##args); \
-        }                                                                         \
+#define LOG_ERROR(fmt, ...)                                                           \
+    do                                                                                   \
+    {                                                                                    \
+        if (is_use_log)                                                                  \
+        {                                                                                \
+            Log::getInstance()->write_log(1, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+        }                                                                                \
+    } while (0)
+
+#define LOG_PRINT(fmt, ...)                                                   \
+    do                                                                        \
+    {                                                                         \
+        Log::getInstance()->print(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
     } while (0)
