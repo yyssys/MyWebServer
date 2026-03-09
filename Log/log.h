@@ -59,7 +59,7 @@ inline void Log::write_log(int level, const std::string &file, int line, const s
 
     std::string time_str = getTimeString(tm);
 
-    // 日志按天分文件记录
+    // 日志文件按天划分
     if (m_today != tm.tm_mday)
     {
         m_today = tm.tm_mday;

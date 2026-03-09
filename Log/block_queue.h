@@ -21,12 +21,6 @@ public:
         m_back = -1;
         m_curr_size = 0;
     }
-    // 返回队列是否为空
-    bool empty()
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        return m_curr_size == 0;
-    }
     // 返回队列是否已满
     bool full()
     {

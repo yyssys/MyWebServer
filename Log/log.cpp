@@ -4,7 +4,6 @@
 
 void Log::init(std::string file, int queue_size)
 {
-
     // 使用异步写
     if (queue_size > 0)
     {
