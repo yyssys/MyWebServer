@@ -7,6 +7,6 @@ project(tinyWebServer)
 # GCC/Clang 的编译选项（MSVC 不支持）
 add_compile_options(-fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=)
 
-add_subdirectory(Log)
+add_subdirectory(log)
 
-# add_subdirectory(test)
+add_subdirectory(test)
