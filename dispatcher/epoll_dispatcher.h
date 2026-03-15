@@ -6,19 +6,27 @@
 class EpollDispatcher : public Dispatcher
 {
 public:
-    EpollDispatcher();
+    EpollDispatcher(int triggerMode = 1);
     ~EpollDispatcher();
 
     // 添加
-    void add(Channel &Channel) override;
+    void add(Channel *channel) override;
     // 删除
-    virtual void remove() override;
+    void remove(Channel *channel) override;
     // 修改
-    virtual void modify() override;
+    void modify(Channel *channel) override;
     // 事件监测
-    virtual void dispatch(int timeout = 2) override; // 单位: s
+    void dispatch(int timeout = 2) override;
 
 private:
-    int m_epfd;
-    struct epoll_event m_events[1024];
+    void handleWakeup();
+    void processTaskQueue();
+    void setNonBlocking(int fd);
+    int updateEpoll(Channel *channel, int op);
+    void addInLoop(Channel *channel);
+
+    int m_epollFd;
+    int m_triggerMode; // 触发模式，默认是ET
+    struct epoll_event m_epollEvents[1024];
+    Channel *m_wakeupChannel;
 };

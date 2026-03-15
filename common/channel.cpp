@@ -1,13 +1,13 @@
 #include "channel.h"
 
-Channel::Channel(int fd, FDEvent events, callback readFunc, callback writeFunc)
-    : m_fd(fd), m_events(events), readCallback(readFunc), writeCallback(writeFunc)
+Channel::Channel(int fd, FDEvent events, Callback readFunc, Callback writeFunc)
+    : m_fd(fd), m_events(events), m_readCallback(readFunc), m_writeCallback(writeFunc)
 {
 }
 
-void Channel::setListenWriteEvent(bool flag)
+void Channel::setWriteEnabled(bool enabled)
 {
-    if (flag)
+    if (enabled)
     {
         m_events = m_events | FDEvent::WriteEvent;
     }

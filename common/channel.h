@@ -3,6 +3,7 @@
 // 定义文件描述符的读写事件
 enum class FDEvent : char
 {
+    None = 0,
     ReadEvent = 1 << 0,
     WriteEvent = 1 << 1
 };
@@ -23,22 +24,48 @@ inline FDEvent operator~(FDEvent a)
 class Channel
 {
 public:
-    using callback = std::function<void()>;
+    using Callback = std::function<void()>;
 
-    Channel(int fd, FDEvent events, callback readFunc, callback writeFunc);
+    Channel(int fd, FDEvent events, Callback readFunc, Callback writeFunc);
 
     // 是否监听写事件
-    void setListenWriteEvent(bool flag);
+    void setWriteEnabled(bool enabled);
 
     // 获取 fd
-    int getfd()
+    int getFd() const
     {
         return m_fd;
     }
 
+    FDEvent getEvents() const
+    {
+        return m_events;
+    }
+
+    void handleRead() const
+    {
+        if (m_readCallback)
+        {
+            m_readCallback();
+        }
+    }
+
+    void handleWrite() const
+    {
+        if (m_writeCallback)
+        {
+            m_writeCallback();
+        }
+    }
+
     // 回调函数
-    callback readCallback;
-    callback writeCallback;
+    Callback m_readCallback;
+    Callback m_writeCallback;
+    ~Channel()
+    {
+        if (m_fd > 0)
+            close(m_fd);
+    }
 
 private:
     // 文件描述符
