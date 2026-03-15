@@ -4,8 +4,8 @@
 enum class FDEvent : char
 {
     None = 0,
-    ReadEvent = 1 << 0,
-    WriteEvent = 1 << 1
+    ReadEvent = 1 ,
+    WriteEvent = 2
 };
 inline FDEvent operator|(FDEvent a, FDEvent b)
 {

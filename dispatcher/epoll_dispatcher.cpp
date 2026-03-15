@@ -4,8 +4,8 @@
 
 #include "epoll_dispatcher.h"
 
-EpollDispatcher::EpollDispatcher(int triggerMode)
-    : Dispatcher(), m_epollFd(-1), m_triggerMode(triggerMode), m_wakeupChannel(nullptr)
+EpollDispatcher::EpollDispatcher(bool uselog, int triggerMode)
+    : Dispatcher(uselog), m_epollFd(-1), m_triggerMode(triggerMode), m_wakeupChannel(nullptr)
 {
     m_epollFd = epoll_create(10);
     if (m_epollFd == -1)
@@ -20,7 +20,7 @@ EpollDispatcher::EpollDispatcher(int triggerMode)
         FDEvent::ReadEvent,
         std::bind(&EpollDispatcher::handleWakeup, this),
         nullptr);
-    addInLoop(m_wakeupChannel);
+    add(m_wakeupChannel);
 }
 
 EpollDispatcher::~EpollDispatcher()
@@ -37,26 +37,21 @@ void EpollDispatcher::add(Channel *channel)
     // 当前反应堆线程添加的话，直接处理就行，不需要先添加到队列中
     if (isInOwnerThread())
     {
-        addInLoop(channel);
+        if (channel == nullptr || m_channelMap.find(channel->getFd()) != m_channelMap.end())
+        {
+            return;
+        }
+
+        if (updateEpoll(channel, EPOLL_CTL_ADD) != 0)
+        {
+            LOG_ERROR("epoll_ctl add {} failed", channel->getFd());
+            return;
+        }
+        m_channelMap[channel->getFd()] = channel;
         return;
     }
     // 主线程操作的话，需要先添加到阻塞队列中
     addElement(channel, Operation::Add);
-}
-
-void EpollDispatcher::addInLoop(Channel *channel)
-{
-    if (channel == nullptr || m_channelMap.find(channel->getFd()) != m_channelMap.end())
-    {
-        return;
-    }
-
-    if (updateEpoll(channel, EPOLL_CTL_ADD) != 0)
-    {
-        LOG_ERROR("epoll_ctl add {} failed", channel->getFd());
-        return;
-    }
-    m_channelMap[channel->getFd()] = channel;
 }
 
 void EpollDispatcher::remove(Channel *channel)
@@ -114,11 +109,11 @@ void EpollDispatcher::dispatch(int timeout)
         {
             // 对端关闭，移除
             remove(channel);
-            
         }
-        else if(fd == m_wakeupFds[0] && (readyEvents & EPOLLIN))
+        else if (fd == m_wakeupFds[0] && (readyEvents & EPOLLIN))
         {
             // 主线程发信号，有新的fd需要添加到epoll模型中。处理任务队列
+            channel->handleRead();
             processTaskQueue();
         }
         else if ((readyEvents & (EPOLLIN | EPOLLRDHUP)) != 0)
@@ -167,7 +162,7 @@ void EpollDispatcher::processTaskQueue()
         switch (et.operation)
         {
         case Operation::Add:
-            addInLoop(et.channel);
+            add(et.channel);
             break;
         case Operation::Modify:
             modify(et.channel);

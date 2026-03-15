@@ -1,12 +1,14 @@
 #pragma once
-#include <sys/epoll.h>
+#include <sys/poll.h>
 #include "dispatcher.h"
 
-class EpollDispatcher : public Dispatcher
+#define MaxNode 65536
+
+class PollDispatcher : public Dispatcher
 {
 public:
-    EpollDispatcher(bool uselog = true, int triggerMode = 1);
-    ~EpollDispatcher();
+    PollDispatcher(bool uselog);
+    ~PollDispatcher() {}
 
     // 添加
     void add(Channel *channel) override;
@@ -22,9 +24,8 @@ private:
     void processTaskQueue();
     void setNonBlocking(int fd);
     int updateEpoll(Channel *channel, int op);
+    void addInLoop(Channel *channel);
 
-    int m_epollFd;
-    int m_triggerMode; // 触发模式，默认是ET
-    struct epoll_event m_epollEvents[1024];
-    Channel *m_wakeupChannel;
+    int m_maxfd;
+    struct pollfd m_pollfd[MaxNode];
 };

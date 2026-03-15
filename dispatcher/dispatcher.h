@@ -23,7 +23,7 @@ struct ElementType
 class Dispatcher
 {
 public:
-    Dispatcher(bool useLog = true) : is_use_log(useLog), m_ThreadId(std::this_thread::get_id())
+    Dispatcher(bool useLog) : is_use_log(useLog), m_ThreadId(std::this_thread::get_id())
     {
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_wakeupFds) != 0)
         {
@@ -31,15 +31,19 @@ public:
         }
     }
     // 添加
-    virtual void add(Channel *Channel) {};
+    virtual void add(Channel *Channel) {}
     // 删除
-    virtual void remove(Channel *Channel) {};
+    virtual void remove(Channel *Channel) {}
     // 修改
-    virtual void modify(Channel *Channel) {};
+    virtual void modify(Channel *Channel) {}
     // 事件监测
-    virtual void dispatch(int timeout = 2) {}; // 单位: s
+    virtual void dispatch(int timeout = 2) {} // 单位: s
 
-    virtual ~Dispatcher() {}
+    virtual ~Dispatcher()
+    {
+        close(m_wakeupFds[0]);
+        close(m_wakeupFds[1]);
+    }
 
 protected:
     bool isInOwnerThread() const
@@ -81,6 +85,5 @@ protected:
     std::thread::id m_ThreadId;
     std::mutex m_QueueMutex;
     std::deque<ElementType> m_TaskQueue;
-
-private:
+    Channel *m_wakeupChannel;
 };
