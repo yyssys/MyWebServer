@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <unordered_map>
 #include "log/log.h"
-#include "common/channel.h"
+#include "channel/channel.h"
 
 enum class Operation
 {

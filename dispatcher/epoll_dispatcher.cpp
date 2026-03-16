@@ -1,4 +1,3 @@
-#include <cerrno>
 #include "epoll_dispatcher.h"
 
 EpollDispatcher::EpollDispatcher(bool uselog, int triggerMode)
