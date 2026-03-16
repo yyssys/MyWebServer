@@ -1,34 +1,19 @@
 #include <cerrno>
-#include <cstring>
-#include <fcntl.h>
-
 #include "epoll_dispatcher.h"
 
 EpollDispatcher::EpollDispatcher(bool uselog, int triggerMode)
-    : Dispatcher(uselog), m_epollFd(-1), m_triggerMode(triggerMode), m_wakeupChannel(nullptr)
+    : Dispatcher(uselog), m_epollFd(-1), m_triggerMode(triggerMode)
 {
     m_epollFd = epoll_create(10);
     if (m_epollFd == -1)
     {
         LOG_ERROR("epoll_create failed.");
     }
-    // 读端设置为非阻塞的
-    setNonBlocking(m_wakeupFds[0]);
-
-    m_wakeupChannel = new Channel(
-        m_wakeupFds[0],
-        FDEvent::ReadEvent,
-        std::bind(&EpollDispatcher::handleWakeup, this),
-        nullptr);
-    add(m_wakeupChannel);
+    initWakeupChannel();
 }
 
 EpollDispatcher::~EpollDispatcher()
 {
-    if (m_wakeupChannel)
-        delete m_wakeupChannel;
-    close(m_wakeupFds[0]);
-    close(m_wakeupFds[1]);
     close(m_epollFd);
 }
 
@@ -100,6 +85,7 @@ void EpollDispatcher::dispatch(int timeout)
         auto iter = m_channelMap.find(fd);
         if (iter == m_channelMap.end())
         {
+            LOG_ERROR("epoll 激活的fd不在map中");
             continue;
         }
 
@@ -110,12 +96,6 @@ void EpollDispatcher::dispatch(int timeout)
             // 对端关闭，移除
             remove(channel);
         }
-        else if (fd == m_wakeupFds[0] && (readyEvents & EPOLLIN))
-        {
-            // 主线程发信号，有新的fd需要添加到epoll模型中。处理任务队列
-            channel->handleRead();
-            processTaskQueue();
-        }
         else if ((readyEvents & (EPOLLIN | EPOLLRDHUP)) != 0)
         {
             channel->handleRead();
@@ -124,70 +104,6 @@ void EpollDispatcher::dispatch(int timeout)
         {
             channel->handleWrite();
         }
-    }
-}
-
-void EpollDispatcher::handleWakeup()
-{
-    char buffer[8];
-    // 将数据读完
-    while (true)
-    {
-        const int ret = recv(m_wakeupFds[0], buffer, sizeof(buffer), 0);
-        if (ret > 0)
-        {
-            continue;
-        }
-        if (ret == 0)
-        {
-            break;
-        }
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
-        {
-            break;
-        }
-
-        LOG_ERROR("recv wakeup signal failed.");
-        break;
-    }
-
-    processTaskQueue();
-}
-
-void EpollDispatcher::processTaskQueue()
-{
-    std::deque<ElementType> elementtype = takeQueueElements();
-    for (const ElementType &et : elementtype)
-    {
-        switch (et.operation)
-        {
-        case Operation::Add:
-            add(et.channel);
-            break;
-        case Operation::Modify:
-            modify(et.channel);
-            break;
-        case Operation::Remove:
-            remove(et.channel);
-            break;
-        default:
-            break;
-        }
-    }
-}
-
-void EpollDispatcher::setNonBlocking(int fd)
-{
-    const int oldFlags = fcntl(fd, F_GETFL);
-    if (oldFlags < 0)
-    {
-        LOG_ERROR("fcntl get flags failed for fd {}", fd);
-        return;
-    }
-
-    if (fcntl(fd, F_SETFL, O_NONBLOCK | oldFlags) < 0)
-    {
-        LOG_ERROR("fcntl set nonblock failed for fd {}", fd);
     }
 }
 

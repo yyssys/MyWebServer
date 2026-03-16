@@ -1,10 +1,11 @@
 #pragma once
 #include <functional>
+#include <unistd.h>
 // 定义文件描述符的读写事件
 enum class FDEvent : char
 {
     None = 0,
-    ReadEvent = 1 ,
+    ReadEvent = 1,
     WriteEvent = 2
 };
 inline FDEvent operator|(FDEvent a, FDEvent b)
@@ -63,8 +64,7 @@ public:
     Callback m_writeCallback;
     ~Channel()
     {
-        if (m_fd > 0)
-            close(m_fd);
+        close(m_fd);
     }
 
 private:

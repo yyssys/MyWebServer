@@ -1,8 +1,10 @@
 #pragma once
 #include <deque>
+#include <fcntl.h>
 #include <mutex>
-#include <unistd.h>
 #include <sys/socket.h>
+#include <thread>
+#include <unistd.h>
 #include <unordered_map>
 #include "log/log.h"
 #include "common/channel.h"
@@ -23,7 +25,11 @@ struct ElementType
 class Dispatcher
 {
 public:
-    Dispatcher(bool useLog) : is_use_log(useLog), m_ThreadId(std::this_thread::get_id())
+    Dispatcher(bool useLog)
+        : is_use_log(useLog),
+          m_wakeupFds{-1, -1},
+          m_ThreadId(std::this_thread::get_id()),
+          m_wakeupChannel(nullptr)
     {
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_wakeupFds) != 0)
         {
@@ -41,7 +47,7 @@ public:
 
     virtual ~Dispatcher()
     {
-        close(m_wakeupFds[0]);
+        delete m_wakeupChannel;
         close(m_wakeupFds[1]);
     }
 
@@ -76,6 +82,80 @@ protected:
         {
             LOG_ERROR("send wakeup signal failed.");
         }
+    }
+
+    void processTaskQueue()
+    {
+        std::deque<ElementType> elementtype = takeQueueElements();
+        for (const ElementType &et : elementtype)
+        {
+            switch (et.operation)
+            {
+            case Operation::Add:
+                add(et.channel);
+                break;
+            case Operation::Modify:
+                modify(et.channel);
+                break;
+            case Operation::Remove:
+                remove(et.channel);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    void handleWakeup()
+    {
+        char buffer[8];
+        while (true)
+        {
+            const int ret = recv(m_wakeupFds[0], buffer, sizeof(buffer), 0);
+            if (ret > 0)
+            {
+                continue;
+            }
+            if (ret == 0)
+            {
+                break;
+            }
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                break;
+            }
+
+            LOG_ERROR("recv wakeup signal failed.");
+            break;
+        }
+
+        processTaskQueue();
+    }
+
+    void setNonBlocking(int fd)
+    {
+        const int oldFlags = fcntl(fd, F_GETFL);
+        if (oldFlags < 0)
+        {
+            LOG_ERROR("fcntl get flags failed for fd {}", fd);
+            return;
+        }
+
+        if (fcntl(fd, F_SETFL, O_NONBLOCK | oldFlags) < 0)
+        {
+            LOG_ERROR("fcntl set nonblock failed for fd {}", fd);
+        }
+    }
+
+    void initWakeupChannel()
+    {
+        setNonBlocking(m_wakeupFds[0]);
+        m_wakeupChannel = new Channel(
+            m_wakeupFds[0],
+            FDEvent::ReadEvent,
+            std::bind(&Dispatcher::handleWakeup, this),
+            nullptr);
+        add(m_wakeupChannel);
     }
 
     bool is_use_log;

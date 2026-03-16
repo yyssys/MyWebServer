@@ -18,13 +18,9 @@ public:
     void dispatch(int timeout = 2) override;
 
 private:
-    void handleWakeup();
-    void processTaskQueue();
-    void setNonBlocking(int fd);
     int updateEpoll(Channel *channel, int op);
 
     int m_epollFd;
     int m_triggerMode; // 触发模式，默认是ET
     struct epoll_event m_epollEvents[1024];
-    Channel *m_wakeupChannel;
 };
