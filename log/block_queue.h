@@ -21,22 +21,17 @@ public:
         m_back = -1;
         m_curr_size = 0;
     }
-    // 返回队列是否已满
-    bool full()
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        return m_curr_size >= m_queue_size;
-    }
     // 往队列里添加条目
     bool push(const T &item)
     {
+        std::unique_lock<std::mutex> lock(m_mutex);
         // 如果队列已经满了，则通知消费者去消费，并返回false
-        if (full())
+        if (m_curr_size >= m_queue_size)
         {
+            lock.unlock();
             m_cond.notify_one();
             return false;
         }
-        std::unique_lock<std::mutex> lock(m_mutex);
         m_back = (m_back + 1) % m_queue_size;
         m_queue[m_back] = item;
         m_curr_size++;
