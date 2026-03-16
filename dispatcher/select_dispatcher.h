@@ -22,7 +22,6 @@ public:
 
 private:
     void setFdSet(Channel *channel);
-    void clearFdSet(Channel *channel);
     fd_set m_readSet{};
     fd_set m_writeSet{};
 };

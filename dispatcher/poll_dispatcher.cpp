@@ -17,6 +17,11 @@ void PollDispatcher::add(Channel *channel)
     // 当前反应堆线程添加的话，直接处理就行，不需要先添加到队列中
     if (isInOwnerThread())
     {
+        if (channel == nullptr || m_channelMap.find(channel->getFd()) != m_channelMap.end())
+        {
+            LOG_ERROR("poll add error");
+            return;
+        }
         int events = POLLRDHUP;
         if ((channel->getEvents() & FDEvent::ReadEvent) != FDEvent::None)
         {
@@ -33,6 +38,7 @@ void PollDispatcher::add(Channel *channel)
             {
                 m_pollfd[i].fd = channel->getFd();
                 m_pollfd[i].events = events;
+                m_channelMap[channel->getFd()] = channel;
                 m_maxfd = i > m_maxfd ? i : m_maxfd;
                 break;
             }
@@ -49,11 +55,11 @@ void PollDispatcher::add(Channel *channel)
 
 void PollDispatcher::remove(Channel *channel)
 {
-    if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
-    {
-        LOG_ERROR("poll remove {} failed", channel->getFd());
-        return;
-    }
+    if (channel == nullptr || m_channelMap.find(channel->getFd()) != m_channelMap.end())
+        {
+            LOG_ERROR("poll remove error");
+            return;
+        }
     for (int i = 0; i < MaxNode; ++i)
     {
         if (m_pollfd[i].fd == channel->getFd())
@@ -65,17 +71,21 @@ void PollDispatcher::remove(Channel *channel)
         }
     }
     m_channelMap.erase(channel->getFd());
+    while (m_maxfd >= 0 && m_pollfd[m_maxfd].fd == -1)
+    {
+        --m_maxfd;
+    }
     delete channel;
 }
 
 void PollDispatcher::modify(Channel *channel)
 {
-    if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
-    {
-        LOG_ERROR("poll modify {} failed", channel->getFd());
-        return;
-    }
-    int events = 0;
+    if (channel == nullptr || m_channelMap.find(channel->getFd()) != m_channelMap.end())
+        {
+            LOG_ERROR("poll modify error");
+            return;
+        }
+    int events = POLLRDHUP;
     if ((channel->getEvents() & FDEvent::ReadEvent) != FDEvent::None)
     {
         events |= POLLIN;
@@ -88,7 +98,7 @@ void PollDispatcher::modify(Channel *channel)
     {
         if (m_pollfd[i].fd == channel->getFd())
         {
-            m_pollfd[i].events |= events;
+            m_pollfd[i].events = events;
             break;
         }
     }
@@ -104,7 +114,7 @@ void PollDispatcher::dispatch(int timeout)
     }
     for (int i = 0; i <= m_maxfd; ++i)
     {
-        if (m_pollfd[i].fd == -1)
+        if (m_pollfd[i].fd == -1 || m_pollfd[i].revents == 0)
         {
             continue;
         }

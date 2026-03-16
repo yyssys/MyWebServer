@@ -7,6 +7,7 @@ void SelectDispatcher::add(Channel *channel)
     {
         if (channel == nullptr || m_channelMap.find(channel->getFd()) != m_channelMap.end())
         {
+            LOG_ERROR("select add error");
             return;
         }
         // select可检测的fd值最大为1023
@@ -27,10 +28,11 @@ void SelectDispatcher::remove(Channel *channel)
 {
     if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
     {
-        LOG_ERROR("poll modify {} failed", channel->getFd());
+        LOG_ERROR("select remove error");
         return;
     }
-    clearFdSet(channel);
+    FD_CLR(channel->getFd(), &m_readSet);
+    FD_CLR(channel->getFd(), &m_writeSet);
     m_channelMap.erase(channel->getFd());
     delete channel;
 }
@@ -39,11 +41,12 @@ void SelectDispatcher::modify(Channel *channel)
 {
     if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
     {
-        LOG_ERROR("poll modify {} failed", channel->getFd());
+        LOG_ERROR("select modify error");
         return;
     }
+    FD_CLR(channel->getFd(), &m_readSet);
+    FD_CLR(channel->getFd(), &m_writeSet);
     setFdSet(channel);
-    clearFdSet(channel);
 }
 
 void SelectDispatcher::dispatch(int timeout)
@@ -61,6 +64,10 @@ void SelectDispatcher::dispatch(int timeout)
     }
     for (int i = 0; i < 1024; ++i)
     {
+        if (!FD_ISSET(i, &rdtmp) && !FD_ISSET(i, &wrtmp))
+        {
+            continue;
+        }
         auto iter = m_channelMap.find(i);
         if (iter == m_channelMap.end())
         {
@@ -89,17 +96,5 @@ void SelectDispatcher::setFdSet(Channel *channel)
     if ((channel->getEvents() & FDEvent::WriteEvent) != FDEvent::None)
     {
         FD_SET(channel->getFd(), &m_writeSet);
-    }
-}
-
-void SelectDispatcher::clearFdSet(Channel *channel)
-{
-    if ((channel->getEvents() & FDEvent::ReadEvent) == FDEvent::None)
-    {
-        FD_CLR(channel->getFd(), &m_readSet);
-    }
-    if ((channel->getEvents() & FDEvent::WriteEvent) == FDEvent::None)
-    {
-        FD_CLR(channel->getFd(), &m_writeSet);
     }
 }
