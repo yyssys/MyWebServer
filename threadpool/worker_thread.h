@@ -1,8 +1,7 @@
 #pragma once
-#include <thread>
-#include <mutex>
-#include <atomic>
 #include <condition_variable>
+#include <atomic>
+#include <mutex>
 #include "dispatcher/epoll_dispatcher.h"
 #include "dispatcher/poll_dispatcher.h"
 #include "dispatcher/select_dispatcher.h"
@@ -28,6 +27,7 @@ private:
     mutex m_mutex;             // 互斥锁
     condition_variable m_cond; // 条件变量
     Dispatcher *m_dispatcher;  // 反应堆模型
+    bool m_isReady;            // 反应堆是否初始化完成
 
     std::atomic<bool> isExit; // 子线程退出标志
     bool is_use_log;          // 日志开关

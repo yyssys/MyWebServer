@@ -55,11 +55,11 @@ void PollDispatcher::add(Channel *channel)
 
 void PollDispatcher::remove(Channel *channel)
 {
-    if (channel == nullptr || m_channelMap.find(channel->getFd()) != m_channelMap.end())
-        {
-            LOG_ERROR("poll remove error");
-            return;
-        }
+    if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
+    {
+        LOG_ERROR("poll remove error");
+        return;
+    }
     for (int i = 0; i < MaxNode; ++i)
     {
         if (m_pollfd[i].fd == channel->getFd())
@@ -80,11 +80,11 @@ void PollDispatcher::remove(Channel *channel)
 
 void PollDispatcher::modify(Channel *channel)
 {
-    if (channel == nullptr || m_channelMap.find(channel->getFd()) != m_channelMap.end())
-        {
-            LOG_ERROR("poll modify error");
-            return;
-        }
+    if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
+    {
+        LOG_ERROR("poll modify error");
+        return;
+    }
     int events = POLLRDHUP;
     if ((channel->getEvents() & FDEvent::ReadEvent) != FDEvent::None)
     {
@@ -130,10 +130,18 @@ void PollDispatcher::dispatch(int timeout)
         {
             // 对端关闭，移除
             remove(channel);
+            continue;
         }
-        else if ((readyEvents & (POLLIN | POLLRDHUP)) != 0)
+        if ((readyEvents & (POLLIN | POLLRDHUP)) != 0)
         {
             channel->handleRead();
+
+            iter = m_channelMap.find(m_pollfd[i].fd);
+            if (iter == m_channelMap.end())
+            {
+                continue;
+            }
+            channel = iter->second;
         }
         if ((readyEvents & POLLOUT) != 0)
         {

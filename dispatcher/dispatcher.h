@@ -25,17 +25,7 @@ struct ElementType
 class Dispatcher
 {
 public:
-    Dispatcher(bool useLog)
-        : is_use_log(useLog),
-          m_wakeupFds{-1, -1},
-          m_ThreadId(std::this_thread::get_id()),
-          m_wakeupChannel(nullptr)
-    {
-        if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_wakeupFds) != 0)
-        {
-            LOG_ERROR("socketpair failed.");
-        }
-    }
+    Dispatcher(bool useLog);
     // 添加
     virtual void add(Channel *Channel) {}
     // 删除
@@ -45,11 +35,7 @@ public:
     // 事件监测
     virtual void dispatch(int timeout = 2) {} // 单位: s
 
-    virtual ~Dispatcher()
-    {
-        delete m_wakeupChannel;
-        close(m_wakeupFds[1]);
-    }
+    virtual ~Dispatcher();
 
 protected:
     bool isInOwnerThread() const
@@ -57,22 +43,10 @@ protected:
         return std::this_thread::get_id() == m_ThreadId;
     }
     // 向队列中添加元素
-    void addElement(Channel *channel, Operation operation)
-    {
-        {
-            std::lock_guard<std::mutex> lock(m_QueueMutex);
-            m_TaskQueue.push_back({channel, operation});
-        }
-        notifyDispatcher();
-    }
+    void addElement(Channel *channel, Operation operation);
+
     // 取队列中的所有元素
-    std::deque<ElementType> takeQueueElements()
-    {
-        std::lock_guard<std::mutex> lock(m_QueueMutex);
-        std::deque<ElementType> tmpTaskQueue;
-        tmpTaskQueue.swap(m_TaskQueue);
-        return tmpTaskQueue;
-    }
+    std::deque<ElementType> takeQueueElements();
 
     void notifyDispatcher()
     {
@@ -83,87 +57,19 @@ protected:
             LOG_ERROR("send wakeup signal failed.");
         }
     }
-
-    void processTaskQueue()
-    {
-        std::deque<ElementType> elementtype = takeQueueElements();
-        for (const ElementType &et : elementtype)
-        {
-            switch (et.operation)
-            {
-            case Operation::Add:
-                add(et.channel);
-                break;
-            case Operation::Modify:
-                modify(et.channel);
-                break;
-            case Operation::Remove:
-                remove(et.channel);
-                break;
-            default:
-                break;
-            }
-        }
-    }
-
-    void handleWakeup()
-    {
-        char buffer[8];
-        while (true)
-        {
-            const int ret = recv(m_wakeupFds[0], buffer, sizeof(buffer), 0);
-            if (ret > 0)
-            {
-                continue;
-            }
-            if (ret == 0)
-            {
-                break;
-            }
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-            {
-                break;
-            }
-
-            LOG_ERROR("recv wakeup signal failed.");
-            break;
-        }
-
-        processTaskQueue();
-    }
-
-    void setNonBlocking(int fd)
-    {
-        const int oldFlags = fcntl(fd, F_GETFL);
-        if (oldFlags < 0)
-        {
-            LOG_ERROR("fcntl get flags failed for fd {}", fd);
-            return;
-        }
-
-        if (fcntl(fd, F_SETFL, O_NONBLOCK | oldFlags) < 0)
-        {
-            LOG_ERROR("fcntl set nonblock failed for fd {}", fd);
-        }
-    }
-
-    void initWakeupChannel()
-    {
-        setNonBlocking(m_wakeupFds[0]);
-        m_wakeupChannel = new Channel(
-            m_wakeupFds[0],
-            FDEvent::ReadEvent,
-            std::bind(&Dispatcher::handleWakeup, this),
-            nullptr);
-        add(m_wakeupChannel);
-    }
+    // 处理任务队列
+    void processTaskQueue();
+    // 唤醒阻塞在poll,epoll,select的线程
+    void handleWakeup();
+    // 设置socket为非阻塞模式
+    void setNonBlocking(int fd);
+    // 初始化唤醒socket, 并将读端加入反应堆
+    void initWakeupChannel();
 
     bool is_use_log;
-    std::unordered_map<int, Channel *> m_channelMap; // 存储fd与channel的关系
-    // 0读，1写
-    int m_wakeupFds[2];
+    std::unordered_map<int, Channel *> m_channelMap; // Dispatcher 持有 Channel 所有权
+    int m_wakeupFds[2];                              // // 唤醒套接字，0端读，1端写
     std::thread::id m_ThreadId;
     std::mutex m_QueueMutex;
     std::deque<ElementType> m_TaskQueue;
-    Channel *m_wakeupChannel;
 };

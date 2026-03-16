@@ -1,10 +1,19 @@
 #include "worker_thread.h"
 
-WorkerThread::WorkerThread(int model = 0, int triggerModel, bool uselog = true)
-    : m_model(model), is_use_log(uselog), m_triggerModel(triggerModel), isExit(false), m_dispatcher(nullptr)
+WorkerThread::WorkerThread(int model, int triggerModel, bool uselog)
+    : m_dispatcher(nullptr),
+      m_isReady(false),
+      isExit(false),
+      is_use_log(uselog),
+      m_model(model),
+      m_triggerModel(triggerModel)
 {
     // 创建子线程
     m_thread = thread(&WorkerThread::worker, this);
+    // 主线程必须等待子线程实例化m_dispatcher指针后再返回，避免getDispatcher()返回空指针
+    unique_lock<mutex> lock(m_mutex);
+    m_cond.wait(lock, [this]
+                { return m_isReady; });
 }
 
 WorkerThread::~WorkerThread()
@@ -22,21 +31,28 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::worker()
 {
+    Dispatcher *dispatcher = nullptr;
     switch (m_model)
     {
     case 0:
-        m_dispatcher = new EpollDispatcher(is_use_log, m_triggerModel);
+        dispatcher = new EpollDispatcher(is_use_log, m_triggerModel);
         break;
     case 1:
-        m_dispatcher = new PollDispatcher(is_use_log);
+        dispatcher = new PollDispatcher(is_use_log);
         break;
     case 2:
-        m_dispatcher = new SelectDispatcher(is_use_log);
+        dispatcher = new SelectDispatcher(is_use_log);
         break;
     default:
         LOG_ERROR("反应堆模型选择错误");
         exit(0);
     }
+    {
+        lock_guard<mutex> lock(m_mutex);
+        m_dispatcher = dispatcher;
+        m_isReady = true;
+    }
+    m_cond.notify_one();
     while (!isExit.load(std::memory_order::memory_order_acquire))
     {
         m_dispatcher->dispatch();

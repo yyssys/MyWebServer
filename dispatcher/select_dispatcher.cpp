@@ -78,6 +78,13 @@ void SelectDispatcher::dispatch(int timeout)
         if (FD_ISSET(i, &rdtmp))
         {
             channel->handleRead();
+
+            iter = m_channelMap.find(i);
+            if (iter == m_channelMap.end())
+            {
+                continue;
+            }
+            channel = iter->second;
         }
 
         if (FD_ISSET(i, &wrtmp))

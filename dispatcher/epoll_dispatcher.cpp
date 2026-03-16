@@ -94,10 +94,19 @@ void EpollDispatcher::dispatch(int timeout)
         {
             // 对端关闭，移除
             remove(channel);
+            continue;
         }
-        else if ((readyEvents & (EPOLLIN | EPOLLRDHUP)) != 0)
+        if ((readyEvents & (EPOLLIN | EPOLLRDHUP)) != 0)
         {
             channel->handleRead();
+
+            // 读回调可能已经移除了 channel，后续不能再访问悬空指针
+            iter = m_channelMap.find(fd);
+            if (iter == m_channelMap.end())
+            {
+                continue;
+            }
+            channel = iter->second;
         }
         if ((readyEvents & EPOLLOUT) != 0)
         {
