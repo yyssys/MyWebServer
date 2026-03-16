@@ -5,7 +5,7 @@
 class EpollDispatcher : public Dispatcher
 {
 public:
-    EpollDispatcher(bool uselog = true, int triggerMode = 1);
+    EpollDispatcher(Config &config);
     ~EpollDispatcher();
 
     // 添加
@@ -21,6 +21,5 @@ private:
     int updateEpoll(Channel *channel, int op);
 
     int m_epollFd;
-    int m_triggerMode; // 触发模式，默认是ET
     struct epoll_event m_epollEvents[1024];
 };

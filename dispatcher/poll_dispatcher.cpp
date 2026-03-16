@@ -1,6 +1,6 @@
 #include "poll_dispatcher.h"
 
-PollDispatcher::PollDispatcher(bool uselog) : Dispatcher(uselog), m_maxfd(0)
+PollDispatcher::PollDispatcher(Config &config) : Dispatcher(config), m_maxfd(0)
 {
     for (int i = 0; i < MaxNode; ++i)
     {

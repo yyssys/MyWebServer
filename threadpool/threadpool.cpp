@@ -1,11 +1,15 @@
 #include "threadpool.h"
 
-ThreadPool::ThreadPool(Dispatcher *mainDispatcher, int num)
-    : m_mainDispatcher(mainDispatcher), m_isStart(false), m_threadNum(num), m_index(0)
+ThreadPool::ThreadPool(Dispatcher *mainDispatcher, Config &config)
+    : m_mainDispatcher(mainDispatcher),
+      m_isStart(false),
+      is_use_log(config.enableLogging),
+      m_index(0),
+      m_config(config)
 {
-    for (int i = 0; i < m_threadNum; ++i)
+    for (int i = 0; i < config.workerThreadCount; ++i)
     {
-        WorkerThread *subThread = new WorkerThread();
+        WorkerThread *subThread = new WorkerThread(config);
         m_workerThreads.push_back(subThread);
     }
 }
@@ -21,10 +25,10 @@ ThreadPool::~ThreadPool()
 Dispatcher *ThreadPool::getDispatcher()
 {
     Dispatcher *dispatcher = m_mainDispatcher;
-    if (m_threadNum > 0)
+    if (m_config.workerThreadCount > 0)
     {
         dispatcher = m_workerThreads[m_index]->getDispatcher();
-        m_index = (m_index + 1) % m_threadNum;
+        m_index = (m_index + 1) % m_config.workerThreadCount;
     }
     return dispatcher;
 }

@@ -11,7 +11,7 @@ using namespace std;
 class WorkerThread
 {
 public:
-    WorkerThread(int model = 0, int triggerModel = 0, bool uselog = true);
+    WorkerThread(Config &config);
 
     Dispatcher *getDispatcher() const
     {
@@ -31,6 +31,5 @@ private:
 
     std::atomic<bool> isExit; // 子线程退出标志
     bool is_use_log;          // 日志开关
-    int m_model;              // 采用什么反应堆模型
-    int m_triggerModel;       // 反应堆模型触发模式，只有为epoll时才生效
+    Config m_config;
 };

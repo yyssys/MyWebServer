@@ -1,12 +1,12 @@
 #include "worker_thread.h"
 
-WorkerThread::WorkerThread(int model, int triggerModel, bool uselog)
+WorkerThread::WorkerThread(Config &config)
     : m_dispatcher(nullptr),
       m_isReady(false),
       isExit(false),
-      is_use_log(uselog),
-      m_model(model),
-      m_triggerModel(triggerModel)
+      is_use_log(config.enableLogging),
+      m_config(config)
+
 {
     // 创建子线程
     m_thread = thread(&WorkerThread::worker, this);
@@ -32,16 +32,16 @@ WorkerThread::~WorkerThread()
 void WorkerThread::worker()
 {
     Dispatcher *dispatcher = nullptr;
-    switch (m_model)
+    switch (m_config.reactorType)
     {
-    case 0:
-        dispatcher = new EpollDispatcher(is_use_log, m_triggerModel);
+    case ReactorType::Epoll:
+        m_dispatcher = new EpollDispatcher(m_config);
         break;
-    case 1:
-        dispatcher = new PollDispatcher(is_use_log);
+    case ReactorType::Poll:
+        m_dispatcher = new PollDispatcher(m_config);
         break;
-    case 2:
-        dispatcher = new SelectDispatcher(is_use_log);
+    case ReactorType::Select:
+        m_dispatcher = new SelectDispatcher(m_config);
         break;
     default:
         LOG_ERROR("反应堆模型选择错误");

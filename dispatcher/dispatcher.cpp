@@ -1,7 +1,7 @@
 #include "dispatcher.h"
 
-Dispatcher::Dispatcher(bool useLog) : is_use_log(useLog), m_wakeupFds{-1, -1},
-                                      m_ThreadId(std::this_thread::get_id())
+Dispatcher::Dispatcher(Config &config) : is_use_log(config.enableLogging), m_wakeupFds{-1, -1},
+                                         m_ThreadId(std::this_thread::get_id()), m_config(config)
 {
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_wakeupFds) != 0)
     {

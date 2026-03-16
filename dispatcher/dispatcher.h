@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include "log/log.h"
 #include "channel/channel.h"
+#include "config/config.h"
 
 enum class Operation
 {
@@ -25,7 +26,7 @@ struct ElementType
 class Dispatcher
 {
 public:
-    Dispatcher(bool useLog);
+    Dispatcher(Config &config);
     // 添加
     virtual void add(Channel *Channel) {}
     // 删除
@@ -72,4 +73,5 @@ protected:
     std::thread::id m_ThreadId;
     std::mutex m_QueueMutex;
     std::deque<ElementType> m_TaskQueue;
+    Config m_config;
 };

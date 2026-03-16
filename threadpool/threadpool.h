@@ -6,7 +6,7 @@
 class ThreadPool
 {
 public:
-    ThreadPool(Dispatcher *mainDispatcher, int num = std::thread::hardware_concurrency());
+    ThreadPool(Dispatcher *mainDispatcher, Config &config);
     ~ThreadPool();
 
     Dispatcher *getDispatcher();
@@ -18,8 +18,9 @@ private:
     // 主线程的反应堆
     Dispatcher *m_mainDispatcher;
 
+    bool is_use_log;
+    Config m_config;
     bool m_isStart;
-    int m_threadNum;
     std::vector<WorkerThread *> m_workerThreads;
     int m_index;
 };

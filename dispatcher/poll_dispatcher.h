@@ -7,7 +7,7 @@
 class PollDispatcher : public Dispatcher
 {
 public:
-    PollDispatcher(bool uselog);
+    PollDispatcher(Config &config);
     ~PollDispatcher() {}
 
     // 添加

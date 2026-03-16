@@ -5,7 +5,7 @@
 class SelectDispatcher : public Dispatcher
 {
 public:
-    SelectDispatcher(bool uselog) : Dispatcher(uselog)
+    SelectDispatcher(Config &config) : Dispatcher(config)
     {
         initWakeupChannel();
     }

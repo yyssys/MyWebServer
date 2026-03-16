@@ -1,7 +1,7 @@
 #include "epoll_dispatcher.h"
 
-EpollDispatcher::EpollDispatcher(bool uselog, int triggerMode)
-    : Dispatcher(uselog), m_epollFd(-1), m_triggerMode(triggerMode)
+EpollDispatcher::EpollDispatcher(Config &config)
+    : Dispatcher(config), m_epollFd(-1)
 {
     m_epollFd = epoll_create(10);
     if (m_epollFd == -1)
@@ -100,7 +100,7 @@ void EpollDispatcher::dispatch(int timeout)
         {
             channel->handleRead();
 
-            // 读回调可能已经移除了 channel，后续不能再访问悬空指针
+            // 读回调可能已经移除了channel，后续不能再访问悬空指针
             iter = m_channelMap.find(fd);
             if (iter == m_channelMap.end())
             {
@@ -131,7 +131,7 @@ int EpollDispatcher::updateEpoll(Channel *channel, int op)
         events |= EPOLLOUT | EPOLLRDHUP;
     }
 
-    if (m_triggerMode != 0)
+    if (m_config.triggerMode == TriggerMode::EdgeTriggered)
     {
         events |= EPOLLET;
         setNonBlocking(channel->getFd());
