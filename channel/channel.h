@@ -27,7 +27,7 @@ class Channel
 public:
     using Callback = std::function<void()>;
 
-    Channel(int fd, FDEvent events, Callback readFunc, Callback writeFunc);
+    Channel(int fd, FDEvent events, Callback readFunc, Callback writeFunc, Callback closeFunc);
 
     // 是否监听写事件
     void setWriteEnabled(bool enabled);
@@ -59,9 +59,18 @@ public:
         }
     }
 
+    void handleClose() const
+    {
+        if (m_closeCallback)
+        {
+            m_closeCallback();
+        }
+    }
+
     // 回调函数
     Callback m_readCallback;
     Callback m_writeCallback;
+    Callback m_closeCallback;
     ~Channel()
     {
         close(m_fd);

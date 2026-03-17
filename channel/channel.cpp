@@ -1,7 +1,7 @@
 #include "channel.h"
 
-Channel::Channel(int fd, FDEvent events, Callback readFunc, Callback writeFunc)
-    : m_fd(fd), m_events(events), m_readCallback(readFunc), m_writeCallback(writeFunc)
+Channel::Channel(int fd, FDEvent events, Callback readFunc, Callback writeFunc, Callback closeFunc)
+    : m_fd(fd), m_events(events), m_readCallback(readFunc), m_writeCallback(writeFunc), m_closeCallback(closeFunc)
 {
 }
 

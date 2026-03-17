@@ -50,7 +50,6 @@ void EpollDispatcher::remove(Channel *channel)
         LOG_ERROR("epoll_ctl del {} failed", channel->getFd());
     }
     m_channelMap.erase(channel->getFd());
-    delete channel;
 }
 
 void EpollDispatcher::modify(Channel *channel)
@@ -92,8 +91,7 @@ void EpollDispatcher::dispatch(int timeout)
         const int readyEvents = m_epollEvents[i].events;
         if (readyEvents & (EPOLLHUP | EPOLLERR))
         {
-            // 对端关闭，移除
-            remove(channel);
+            channel->handleClose();
             continue;
         }
         if ((readyEvents & (EPOLLIN | EPOLLRDHUP)) != 0)
@@ -134,9 +132,8 @@ int EpollDispatcher::updateEpoll(Channel *channel, int op)
     if (m_config.triggerMode == TriggerMode::EdgeTriggered)
     {
         events |= EPOLLET;
-        setNonBlocking(channel->getFd());
     }
-
+    setNonBlocking(channel->getFd());
     ev.events = events;
     return epoll_ctl(m_epollFd, op, channel->getFd(), &ev);
 }

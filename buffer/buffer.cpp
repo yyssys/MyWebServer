@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include <sys/uio.h>
 #include <cstring>
 Buffer::Buffer(int size) : m_capacity(size), m_readPos(0), m_writePos(0)
 {
@@ -48,81 +49,21 @@ void Buffer::extendRoom(int size)
     }
 }
 
-// int Buffer::appendString(const char *data, int size)
-// {
-//     if (data == nullptr || size <= 0)
-//     {
-//         return -1;
-//     }
-//     // 扩容
-//     extendRoom(size);
-//     // 数据拷贝
-//     memcpy(m_data + m_writePos, data, size);
-//     m_writePos += size;
-//     return 0;
-// }
+int Buffer::appendData(const char *data, int size)
+{
+    if (data == nullptr || size <= 0)
+    {
+        return -1;
+    }
 
-// int Buffer::appendString(const char *data)
-// {
-//     int size = strlen(data);
-//     int ret = appendString(data, size);
-//     return ret;
-// }
-
-// int Buffer::appendString(const string data)
-// {
-//     int ret = appendString(data.data());
-//     return ret;
-// }
-
-// int Buffer::socketRead(int fd)
-// {
-//     // read/recv/readv
-//     struct iovec vec[2];
-//     // 初始化数组元素
-//     int writeable = writeableSize();
-//     vec[0].iov_base = m_data + m_writePos;
-//     vec[0].iov_len = writeable;
-//     char *tmpbuf = (char *)malloc(40960);
-//     vec[1].iov_base = tmpbuf;
-//     vec[1].iov_len = 40960;
-//     int result = readv(fd, vec, 2);
-//     if (result == -1)
-//     {
-//         return -1;
-//     }
-//     else if (result <= writeable)
-//     {
-//         m_writePos += result;
-//     }
-//     else
-//     {
-//         m_writePos = m_capacity;
-//         appendString(tmpbuf, result - writeable);
-//     }
-//     free(tmpbuf);
-//     return result;
-// }
+    extendRoom(size);
+    memcpy(m_data + m_writePos, data, size);
+    m_writePos += size;
+    return 0;
+}
 
 char *Buffer::findCRLF()
 {
     char *ptr = (char *)memmem(m_data + m_readPos, readAbleSize(), "\r\n", 2);
     return ptr;
 }
-
-// int Buffer::sendData(int socket)
-// {
-//     // 判断有无数据
-//     int readable = readableSize();
-//     if (readable > 0)
-//     {
-//         int count = send(socket, m_data + m_readPos, readable, MSG_NOSIGNAL);
-//         if (count > 0)
-//         {
-//             m_readPos += count;
-//             usleep(1);
-//         }
-//         return count;
-//     }
-//     return 0;
-// }

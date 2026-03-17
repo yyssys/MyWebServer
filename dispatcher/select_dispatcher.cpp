@@ -17,6 +17,7 @@ void SelectDispatcher::add(Channel *channel)
             return;
         }
         setFdSet(channel);
+        setNonBlocking(channel->getFd());
         m_channelMap[channel->getFd()] = channel;
         return;
     }
@@ -34,7 +35,6 @@ void SelectDispatcher::remove(Channel *channel)
     FD_CLR(channel->getFd(), &m_readSet);
     FD_CLR(channel->getFd(), &m_writeSet);
     m_channelMap.erase(channel->getFd());
-    delete channel;
 }
 
 void SelectDispatcher::modify(Channel *channel)

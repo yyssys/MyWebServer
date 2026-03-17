@@ -1,4 +1,6 @@
 #pragma once
+#include <functional>
+#include <string>
 #include <sys/uio.h>
 #include "dispatcher/dispatcher.h"
 #include "channel/channel.h"
@@ -8,17 +10,24 @@
 class HttpConnection
 {
 public:
-    HttpConnection(const Config &config, int fd, Dispatcher *dispatcher);
-    ~HttpConnection() = default;
+    using CloseCallback = std::function<void(int)>;
 
-    int processRead();
-    int processWrite();
+    HttpConnection(const Config &config, int fd, Dispatcher *dispatcher, CloseCallback closeCallback);
+    ~HttpConnection();
+
+    void processRead();
+    void processWrite();
+    void processClose();
     int LTRead();
     int ETRead();
 
 private:
+    void initResponse();
+    void closeConnection();
+
     Dispatcher *m_dispatcher;
     Channel *m_channel;
+    CloseCallback m_closeCallback;  // 销毁当前httpConn的回调
     Buffer m_readBuf;
     Buffer m_writeBuf;
     Config m_config;

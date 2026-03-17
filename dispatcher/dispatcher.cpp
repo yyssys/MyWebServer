@@ -1,7 +1,8 @@
 #include "dispatcher.h"
 
-Dispatcher::Dispatcher(const Config &config) : is_use_log(config.enableLogging), m_wakeupFds{-1, -1},
-                                               m_ThreadId(std::this_thread::get_id()), m_config(config)
+Dispatcher::Dispatcher(const Config &config) : is_use_log(config.enableLogging), m_wakeupChannel(nullptr),
+                                               m_wakeupFds{-1, -1}, m_ThreadId(std::this_thread::get_id()),
+                                               m_config(config)
 {
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_wakeupFds) != 0)
     {
@@ -11,11 +12,8 @@ Dispatcher::Dispatcher(const Config &config) : is_use_log(config.enableLogging),
 
 Dispatcher::~Dispatcher()
 {
-    for (auto &item : m_channelMap)
-    {
-        delete item.second;
-    }
     m_channelMap.clear();
+    delete m_wakeupChannel;
     close(m_wakeupFds[1]);
 }
 
@@ -112,9 +110,11 @@ void Dispatcher::setNonBlocking(int fd)
 void Dispatcher::initWakeupChannel()
 {
     setNonBlocking(m_wakeupFds[0]);
-    add(new Channel(
+    m_wakeupChannel = new Channel(
         m_wakeupFds[0],
         FDEvent::ReadEvent,
         std::bind(&Dispatcher::handleWakeup, this),
-        nullptr));
+        nullptr,
+        nullptr);
+    add(m_wakeupChannel);
 }

@@ -39,6 +39,7 @@ void PollDispatcher::add(Channel *channel)
                 m_pollfd[i].fd = channel->getFd();
                 m_pollfd[i].events = events;
                 m_channelMap[channel->getFd()] = channel;
+                setNonBlocking(channel->getFd());
                 m_maxfd = i > m_maxfd ? i : m_maxfd;
                 break;
             }
@@ -75,7 +76,6 @@ void PollDispatcher::remove(Channel *channel)
     {
         --m_maxfd;
     }
-    delete channel;
 }
 
 void PollDispatcher::modify(Channel *channel)
@@ -128,8 +128,7 @@ void PollDispatcher::dispatch(int timeout)
         const int readyEvents = m_pollfd[i].revents;
         if (readyEvents & (POLLHUP | POLLERR))
         {
-            // 对端关闭，移除
-            remove(channel);
+            channel->handleClose();
             continue;
         }
         if ((readyEvents & (POLLIN | POLLRDHUP)) != 0)

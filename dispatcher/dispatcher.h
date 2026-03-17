@@ -60,8 +60,9 @@ protected:
     void initWakeupChannel();
 
     bool is_use_log;
-    std::unordered_map<int, Channel *> m_channelMap; // Dispatcher 持有 Channel 所有权
-    int m_wakeupFds[2];                              // // 唤醒套接字，0端读，1端写
+    std::unordered_map<int, Channel *> m_channelMap; // 非拥有指针，仅用于fd到channel的索引
+    Channel *m_wakeupChannel;
+    int m_wakeupFds[2]; // 唤醒套接字，0端读，1端写
     std::thread::id m_ThreadId;
     std::mutex m_QueueMutex;
     std::deque<ElementType> m_TaskQueue;

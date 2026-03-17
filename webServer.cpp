@@ -1,7 +1,8 @@
 #include "webServer.h"
 
 webServer::webServer(const Config &config)
-    : m_mainDispatcher(nullptr),
+    : m_listenChannel(nullptr),
+      m_mainDispatcher(nullptr),
       is_use_log(config.enableLogging),
       m_threadPool(nullptr),
       m_config(config)
@@ -11,10 +12,15 @@ webServer::webServer(const Config &config)
 
 webServer::~webServer()
 {
-    if (m_mainDispatcher)
-        delete m_mainDispatcher;
     if (m_threadPool)
         delete m_threadPool;
+    {
+        std::lock_guard<std::mutex> lock(m_connectionMutex);
+        m_connections.clear();
+    }
+    if (m_mainDispatcher)
+        delete m_mainDispatcher;
+    delete m_listenChannel;
 }
 
 void webServer::run()
@@ -38,9 +44,14 @@ void webServer::run()
     // 创建线程池
     m_threadPool = new ThreadPool(m_mainDispatcher, m_config);
     // 初始化监听fd的channel实例
-    Channel *channel = new Channel(m_lfd, FDEvent::ReadEvent, std::bind(&webServer::acceptConnection, this), nullptr);
+    m_listenChannel = new Channel(
+        m_lfd,
+        FDEvent::ReadEvent,
+        std::bind(&webServer::acceptConnection, this),
+        nullptr,
+        nullptr);
     // 将监听所用的channel加入主反应堆
-    m_mainDispatcher->add(channel);
+    m_mainDispatcher->add(m_listenChannel);
 }
 
 void webServer::acceptConnection()
@@ -58,8 +69,22 @@ void webServer::acceptConnection()
     LOG_INFO("与客户端建立连接,客户端IP: %s,端口: %d", clientIp, ntohs(client_address.sin_port));
     // 从线程池中取出一个反应堆实例去处理这个cfd
     Dispatcher *dispatcher = m_threadPool->getDispatcher();
+
     // 根据反应堆和通信fd创建httpConn
-    
+    auto connection = std::make_unique<HttpConnection>(
+        m_config,
+        cfd,
+        dispatcher,
+        std::bind(&webServer::removeConnection, this));
+    // 加入连接队列。加锁是因为有可能子线程正在调用removeConnection释放连接
+    std::lock_guard<std::mutex> lock(m_connectionMutex);
+    m_connections.emplace(cfd, std::move(connection));
+}
+// 传给httpConnection的回调函数，用来断开连接时从webServer里面销毁连接
+void webServer::removeConnection(int fd)
+{
+    std::lock_guard<std::mutex> lock(m_connectionMutex);
+    m_connections.erase(fd);
 }
 
 void webServer::setListen()

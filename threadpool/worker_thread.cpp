@@ -30,7 +30,6 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::worker()
 {
-    Dispatcher *dispatcher = nullptr;
     switch (m_config.reactorType)
     {
     case ReactorType::Epoll:
@@ -48,7 +47,6 @@ void WorkerThread::worker()
     }
     {
         lock_guard<mutex> lock(m_mutex);
-        m_dispatcher = dispatcher;
         m_isReady = true;
     }
     m_cond.notify_one();

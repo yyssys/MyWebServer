@@ -19,15 +19,12 @@ public:
     {
         return m_writePos - m_readPos;
     }
-    // // 写内存 1. 直接写 2. 接收套接字数据
-    // int appendString(const char *data, int size);
-    // int appendString(const char *data);
-    // int appendString(const string data);
-    // int socketRead(int fd);
+    // 把读到的数据添加到缓存中
+    int appendData(const char *data, int size);
+
     // 根据\r\n取出一行, 找到其在数据块中的位置, 返回该位置
     char *findCRLF();
-    // // 发送数据
-    // int sendData(int socket); // 指向内存的指针
+
     // 得到读数据的起始位置
     char *readStartPos()
     {
