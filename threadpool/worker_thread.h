@@ -11,7 +11,7 @@ using namespace std;
 class WorkerThread
 {
 public:
-    WorkerThread(Config &config);
+    WorkerThread(const Config &config);
 
     Dispatcher *getDispatcher() const
     {

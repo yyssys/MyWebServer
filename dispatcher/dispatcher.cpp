@@ -1,7 +1,7 @@
 #include "dispatcher.h"
 
-Dispatcher::Dispatcher(Config &config) : is_use_log(config.enableLogging), m_wakeupFds{-1, -1},
-                                         m_ThreadId(std::this_thread::get_id()), m_config(config)
+Dispatcher::Dispatcher(const Config &config) : is_use_log(config.enableLogging), m_wakeupFds{-1, -1},
+                                               m_ThreadId(std::this_thread::get_id()), m_config(config)
 {
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_wakeupFds) != 0)
     {
@@ -34,6 +34,16 @@ std::deque<ElementType> Dispatcher::takeQueueElements()
     std::deque<ElementType> tmpTaskQueue;
     tmpTaskQueue.swap(m_TaskQueue);
     return tmpTaskQueue;
+}
+
+void Dispatcher::notifyDispatcher()
+{
+    const char Byte = 1;
+    const int ret = send(m_wakeupFds[1], &Byte, 1, 0);
+    if (ret < 0 && is_use_log)
+    {
+        LOG_ERROR("send wakeup signal failed.");
+    }
 }
 
 void Dispatcher::processTaskQueue()

@@ -5,7 +5,7 @@
 class EpollDispatcher : public Dispatcher
 {
 public:
-    EpollDispatcher(Config &config);
+    EpollDispatcher(const Config &config);
     ~EpollDispatcher();
 
     // 添加

@@ -5,7 +5,7 @@
 class SelectDispatcher : public Dispatcher
 {
 public:
-    SelectDispatcher(Config &config) : Dispatcher(config)
+    SelectDispatcher(const Config &config) : Dispatcher(config)
     {
         initWakeupChannel();
     }

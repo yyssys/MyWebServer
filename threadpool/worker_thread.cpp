@@ -1,12 +1,11 @@
 #include "worker_thread.h"
 
-WorkerThread::WorkerThread(Config &config)
+WorkerThread::WorkerThread(const Config &config)
     : m_dispatcher(nullptr),
       m_isReady(false),
       isExit(false),
       is_use_log(config.enableLogging),
       m_config(config)
-
 {
     // 创建子线程
     m_thread = thread(&WorkerThread::worker, this);

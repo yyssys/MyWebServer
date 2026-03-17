@@ -6,7 +6,7 @@
 class ThreadPool
 {
 public:
-    ThreadPool(Dispatcher *mainDispatcher, Config &config);
+    ThreadPool(Dispatcher *mainDispatcher, const Config &config);
     ~ThreadPool();
 
     Dispatcher *getDispatcher();

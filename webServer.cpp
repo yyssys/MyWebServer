@@ -37,8 +37,9 @@ void webServer::run()
     }
     // 创建线程池
     m_threadPool = new ThreadPool(m_mainDispatcher, m_config);
-    // 初始化一个channel实例
-    Channel *channel = new Channel(m_lfd, FDEvent::ReadEvent, nullptr, nullptr);
+    // 初始化监听fd的channel实例
+    Channel *channel = new Channel(m_lfd, FDEvent::ReadEvent, std::bind(&webServer::acceptConnection, this), nullptr);
+    // 将监听所用的channel加入主反应堆
     m_mainDispatcher->add(channel);
 }
 
@@ -55,8 +56,10 @@ void webServer::acceptConnection()
     char clientIp[64] = {0};
     inet_ntop(AF_INET, &client_address.sin_addr, clientIp, sizeof(clientIp));
     LOG_INFO("与客户端建立连接,客户端IP: %s,端口: %d", clientIp, ntohs(client_address.sin_port));
-    // 从线程池中取出一个子线程的反应堆实例, 去处理这个cfd
-    Dispatcher* dispatcher = m_threadPool->getDispatcher();
+    // 从线程池中取出一个反应堆实例去处理这个cfd
+    Dispatcher *dispatcher = m_threadPool->getDispatcher();
+    // 根据反应堆和通信fd创建httpConn
+    
 }
 
 void webServer::setListen()

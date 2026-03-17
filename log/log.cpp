@@ -2,13 +2,13 @@
 #include <iostream>
 #include "log.h"
 
-void Log::init(std::string file, int queue_size)
+void Log::init(Config &config, std::string file = "./server.log")
 {
     // 使用异步写
-    if (queue_size > 0)
+    if (config.logWriteMode == LogWriteMode::Async)
     {
         m_isAyscWrite = true;
-        m_block_queue = new Block_Queue<std::string>(queue_size);
+        m_block_queue = new Block_Queue<std::string>(2000);
         m_async_thread = std::thread(&Log::aysc_write, this);
     }
 

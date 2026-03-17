@@ -7,7 +7,7 @@
 class PollDispatcher : public Dispatcher
 {
 public:
-    PollDispatcher(Config &config);
+    PollDispatcher(const Config &config);
     ~PollDispatcher() {}
 
     // 添加

@@ -26,7 +26,7 @@ struct ElementType
 class Dispatcher
 {
 public:
-    Dispatcher(Config &config);
+    Dispatcher(const Config &config);
     // 添加
     virtual void add(Channel *Channel) {}
     // 删除
@@ -48,19 +48,11 @@ protected:
 
     // 取队列中的所有元素
     std::deque<ElementType> takeQueueElements();
-
-    void notifyDispatcher()
-    {
-        const char Byte = 1;
-        const int ret = send(m_wakeupFds[1], &Byte, 1, 0);
-        if (ret < 0 && is_use_log)
-        {
-            LOG_ERROR("send wakeup signal failed.");
-        }
-    }
+    // 唤醒阻塞在poll,epoll,select的线程
+    void notifyDispatcher();
     // 处理任务队列
     void processTaskQueue();
-    // 唤醒阻塞在poll,epoll,select的线程
+    // 唤醒后读空数据并处理任务队列
     void handleWakeup();
     // 设置socket为非阻塞模式
     void setNonBlocking(int fd);

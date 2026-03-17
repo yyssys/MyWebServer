@@ -2,31 +2,38 @@
 #include <getopt.h>
 #include <iostream>
 #include <thread>
-
+#include <unistd.h>
 
 Config::Config()
     : listenPort(10000),
       enableLogging(true),
       logWriteMode(LogWriteMode::Sync),
-      logQueueSize(10000),
       databaseConnectionCount(8),
       workerThreadCount(std::thread::hardware_concurrency()),
       reactorType(ReactorType::Epoll),
-      triggerMode(TriggerMode::EdgeTriggered)
+      triggerMode(TriggerMode::LevelTriggered)
 {
     if (workerThreadCount <= 0)
     {
         workerThreadCount = 0;
     }
-}
+    char buffer[1024];
 
+    if (getcwd(buffer, sizeof(buffer)) != nullptr)
+    {
+        std::string server_path(buffer);
+
+        server_path += "/source";
+
+        rootPath = server_path;
+    }
+}
 void Config::parseCommandLine(int argc, char *argv[])
 {
     const option longOptions[] = {
         {"port", required_argument, nullptr, 'p'},
         {"log-enable", required_argument, nullptr, 'l'},
         {"log-mode", required_argument, nullptr, 'm'},
-        {"log-queue-size", required_argument, nullptr, 'q'},
         {"sql-connections", required_argument, nullptr, 's'},
         {"threads", required_argument, nullptr, 't'},
         {"reactor", required_argument, nullptr, 'r'},
@@ -34,7 +41,7 @@ void Config::parseCommandLine(int argc, char *argv[])
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0}};
 
-    const char *shortOptions = "p:l:m:q:s:t:r:g:h";
+    const char *shortOptions = "p:l:m:s:t:r:g:h";
     optind = 1;
 
     while (true)
@@ -56,9 +63,6 @@ void Config::parseCommandLine(int argc, char *argv[])
         case 'm':
             logWriteMode = parseLogWriteMode(optarg);
             break;
-        case 'q':
-            logQueueSize = std::atoi(optarg);
-            break;
         case 's':
             databaseConnectionCount = std::atoi(optarg);
             break;
@@ -79,10 +83,10 @@ void Config::parseCommandLine(int argc, char *argv[])
             throw std::invalid_argument("invalid command line arguments");
         }
     }
-
-    if (!enableLogging)
+    // poll和select没有边沿触发模式
+    if(reactorType != ReactorType::Epoll)
     {
-        logWriteMode = LogWriteMode::Sync;
+        triggerMode = TriggerMode::LevelTriggered;
     }
 }
 

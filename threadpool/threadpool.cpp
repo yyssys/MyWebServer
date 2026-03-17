@@ -1,6 +1,6 @@
 #include "threadpool.h"
 
-ThreadPool::ThreadPool(Dispatcher *mainDispatcher, Config &config)
+ThreadPool::ThreadPool(Dispatcher *mainDispatcher, const Config &config)
     : m_mainDispatcher(mainDispatcher),
       m_isStart(false),
       is_use_log(config.enableLogging),

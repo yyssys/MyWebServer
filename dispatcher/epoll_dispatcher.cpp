@@ -1,6 +1,6 @@
 #include "epoll_dispatcher.h"
 
-EpollDispatcher::EpollDispatcher(Config &config)
+EpollDispatcher::EpollDispatcher(const Config &config)
     : Dispatcher(config), m_epollFd(-1)
 {
     m_epollFd = epoll_create(10);

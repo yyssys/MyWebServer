@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <fmt/core.h>
 #include <iostream>
-
+#include "config/config.h"
 #include "block_queue.h"
 
 class Log
@@ -22,8 +22,8 @@ public:
     // 单例模式禁用拷贝构造和拷贝赋值运算符。有析构，无移动
     Log(const Log &) = delete;
     Log &operator=(const Log &) = delete;
-    // 如果定义了队列长度，则使用异步写， 默认使用异步写
-    void init(std::string file = "./server.log", int queue_size = 10000);
+    // 初始化
+    void init(Config & config, std::string file = "./server.log");
     // 写入日志
     template <class... Args>
     void write_log(int level, const std::string &file, int line, const std::string &format, Args... args);

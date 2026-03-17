@@ -32,11 +32,11 @@ public:
     int listenPort;
     bool enableLogging;
     LogWriteMode logWriteMode;
-    int logQueueSize;
     int databaseConnectionCount;
     int workerThreadCount;
     ReactorType reactorType;
     TriggerMode triggerMode;
+    std::string rootPath;
 
 private:
     bool parseBoolOption(const char *value);
