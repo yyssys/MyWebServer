@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #5b7cfa 0%, #7b4bb7 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 背景光斑装饰 */
+        body::before,
+        body::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+        }
+
+        body::before {
+            width: 260px;
+            height: 260px;
+            background: rgba(255, 255, 255, 0.18);
+            top: 10%;
+            left: 12%;
+        }
+
+        body::after {
+            width: 320px;
+            height: 320px;
+            background: rgba(255, 255, 255, 0.12);
+            right: 10%;
+            bottom: 8%;
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 16px 70px;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 380px;
+            padding: 36px 32px 30px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            animation: fadeUp 0.6s ease;
+        }
+
+        .login-title {
+            text-align: center;
+            font-size: 34px;
+            font-weight: 700;
+            color: #2f2f2f;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group input {
+            width: 100%;
+            height: 48px;
+            border: 1px solid #dcdfea;
+            border-radius: 10px;
+            padding: 0 14px;
+            font-size: 15px;
+            color: #333;
+            background: #fff;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .input-group input::placeholder {
+            color: #a0a6b8;
+        }
+
+        .input-group input:focus {
+            border-color: #6b74f8;
+            box-shadow: 0 0 0 4px rgba(107, 116, 248, 0.12);
+        }
+
+        .login-btn {
+            width: 100%;
+            height: 48px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #6677f7, #7e4ec0);
+            color: #fff;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+            box-shadow: 0 10px 24px rgba(107, 116, 248, 0.28);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.96;
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .extra {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.9;
+        }
+
+        .extra a {
+            color: #6b74f8;
+            text-decoration: none;
+            font-weight: 500;
+            margin-left: 6px;
+            margin-right: 6px;
+            transition: color 0.2s ease;
+        }
+
+        .extra a:hover {
+            color: #4a56d4;
+            text-decoration: underline;
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 16px;
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 28px 20px 24px;
+                border-radius: 14px;
+            }
+
+            .login-title {
+                font-size: 28px;
+            }
+
+
+            .footer {
+                font-size: 12px;
+                bottom: 12px;
+                padding: 0 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-title">用户登录</div>
+
+            <form action="2CGISQL.cgi" method="post">
+                <div class="input-group">
+                    <input type="text" name="user" placeholder="请输入用户名" required>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="请输入登录密码" required>
+                </div>
+
+                <button type="submit" class="login-btn">登录</button>
+            </form>
+
+            <div class="extra">
+                <div>
+                    还没有账号？
+                    <a href="register.html">立即注册</a>
+                </div>
+                <div>
+                    <a href="forgot.html">忘记密码？</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2026 Your System. All Rights Reserved.
+    </div>
+
+</body>
+</html>

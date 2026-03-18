@@ -11,7 +11,7 @@ Config::Config()
       databaseConnectionCount(8),
       workerThreadCount(std::thread::hardware_concurrency()),
       reactorType(ReactorType::Epoll),
-      triggerMode(TriggerMode::LevelTriggered)
+      triggerMode(TriggerMode::LT)
 {
     if (workerThreadCount <= 0)
     {
@@ -84,9 +84,9 @@ void Config::parseCommandLine(int argc, char *argv[])
         }
     }
     // poll和select没有边沿触发模式
-    if(reactorType != ReactorType::Epoll)
+    if (reactorType != ReactorType::Epoll)
     {
-        triggerMode = TriggerMode::LevelTriggered;
+        triggerMode = TriggerMode::LT;
     }
 }
 
@@ -155,11 +155,11 @@ TriggerMode Config::parseTriggerMode(const char *value)
     const std::string text(value);
     if (text == "lt")
     {
-        return TriggerMode::LevelTriggered;
+        return TriggerMode::LT;
     }
     if (text == "et")
     {
-        return TriggerMode::EdgeTriggered;
+        return TriggerMode::ET;
     }
     throw std::invalid_argument("--trigger expects 'lt' or 'et'");
 }

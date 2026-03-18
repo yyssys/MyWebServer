@@ -17,8 +17,8 @@ enum class ReactorType
 
 enum class TriggerMode
 {
-    LevelTriggered = 0,
-    EdgeTriggered = 1
+    LT = 0,
+    ET = 1
 };
 
 class Config

@@ -75,7 +75,7 @@ void webServer::acceptConnection()
         m_config,
         cfd,
         dispatcher,
-        std::bind(&webServer::removeConnection, this));
+        std::bind(&webServer::removeConnection, this, std::placeholders::_1));
     // 加入连接队列。加锁是因为有可能子线程正在调用removeConnection释放连接
     std::lock_guard<std::mutex> lock(m_connectionMutex);
     m_connections.emplace(cfd, std::move(connection));

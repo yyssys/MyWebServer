@@ -1,17 +1,19 @@
 #include "buffer.h"
+#include <sys/socket.h>
 #include <sys/uio.h>
+#include <cstdlib>
 #include <cstring>
-Buffer::Buffer(int size) : m_capacity(size), m_readPos(0), m_writePos(0)
+Buffer::Buffer(int size) : capacity(size), readPos(0), writePos(0)
 {
-    m_data = (char *)malloc(size);
-    memset(m_data, 0, size);
+    data = (char *)malloc(size);
+    memset(data, 0, size);
 }
 
 Buffer::~Buffer()
 {
-    if (m_data != nullptr)
+    if (data != nullptr)
     {
-        free(m_data);
+        free(data);
     }
 }
 
@@ -24,46 +26,82 @@ void Buffer::extendRoom(int size)
     }
     // 2. 内存需要合并才够用 - 不需要扩容
     // 剩余的可写的内存 + 已读的内存 > size
-    else if (m_readPos + writeAbleSize() >= size)
+    else if (readPos + writeAbleSize() >= size)
     {
         // 得到未读的内存大小
         int readable = readAbleSize();
         // 移动内存
-        memcpy(m_data, m_data + m_readPos, readable);
+        memcpy(data, data + readPos, readable);
         // 更新位置
-        m_readPos = 0;
-        m_writePos = readable;
+        readPos = 0;
+        writePos = readable;
     }
     // 3. 内存不够用 - 扩容
     else
     {
-        void *temp = realloc(m_data, m_capacity + size);
+        void *temp = realloc(data, capacity + size);
         if (temp == NULL)
         {
             return; // 失败了
         }
-        memset((char *)temp + m_capacity, 0, size);
+        memset((char *)temp + capacity, 0, size);
         // 更新数据
-        m_data = static_cast<char *>(temp);
-        m_capacity += size;
+        data = static_cast<char *>(temp);
+        capacity += size;
     }
 }
 
-int Buffer::appendData(const char *data, int size)
+int Buffer::appendData(const char *s, int size)
 {
-    if (data == nullptr || size <= 0)
+    if (s == nullptr || size <= 0)
     {
         return -1;
     }
 
     extendRoom(size);
-    memcpy(m_data + m_writePos, data, size);
-    m_writePos += size;
+    memcpy(data + writePos, s, size);
+    writePos += size;
     return 0;
+}
+
+int Buffer::appendData(const std::string &data)
+{
+    return appendData(data.data(), static_cast<int>(data.size()));
 }
 
 char *Buffer::findCRLF()
 {
-    char *ptr = (char *)memmem(m_data + m_readPos, readAbleSize(), "\r\n", 2);
+    char *ptr = (char *)memmem(data + readPos, readAbleSize(), "\r\n", 2);
     return ptr;
+}
+
+int Buffer::sendData(int socket)
+{
+    const int readable = readAbleSize();
+    if (readable <= 0)
+    {
+        return 0;
+    }
+
+    const int count = send(socket, data + readPos, readable, MSG_NOSIGNAL);
+    if (count > 0)
+    {
+        updateReadPos(count);
+    }
+    return count;
+}
+
+void Buffer::updateReadPos(int count)
+{
+    if (count <= 0)
+    {
+        return;
+    }
+    readPos += count;
+}
+
+void Buffer::retrieveAll()
+{
+    readPos = 0;
+    writePos = 0;
 }
