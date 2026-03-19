@@ -97,11 +97,10 @@ void Config::printUsage(const char *programName) const
         << "  -p, --port <port>                 Listen port, default 10000\n"
         << "  -l, --log-enable <0|1>           Enable logging, default 1\n"
         << "  -m, --log-mode <sync|async>      Log write mode, default sync\n"
-        << "  -q, --log-queue-size <size>      Async log queue size, default 10000\n"
         << "  -s, --sql-connections <count>    Database connection count, default 8\n"
         << "  -t, --threads <count>            Worker thread count, default hardware_concurrency\n"
         << "  -r, --reactor <epoll|poll|select> Reactor backend, default epoll\n"
-        << "  -g, --trigger <lt|et>            epoll trigger mode, default et\n"
+        << "  -g, --trigger <lt|et>            epoll trigger mode, default lt\n"
         << "  -h, --help                       Show this help message\n";
 }
 
@@ -116,6 +115,7 @@ bool Config::parseBoolOption(const char *value)
     {
         return false;
     }
+    throw std::invalid_argument("--log-enable expects '0' or '1'");
 }
 
 LogWriteMode Config::parseLogWriteMode(const char *value)
