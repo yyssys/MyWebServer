@@ -23,16 +23,16 @@ public:
     Log(const Log &) = delete;
     Log &operator=(const Log &) = delete;
     // 初始化
-    void init(Config & config, std::string file = "./server.log");
+    void init(Config &config, std::string file = "./server.log");
     // 写入日志
     template <class... Args>
     void write_log(int level, const std::string &file, int line, const std::string &format, Args... args);
 
     template <class... Args>
     void print(const std::string &file, int line, const std::string &format, Args... args);
-    ~Log();
 
 private:
+    ~Log();
     // 回调函数，创建线程执行
     void aysc_write();
     std::string getTimeString(std::tm &tm);
@@ -107,25 +107,25 @@ inline void Log::print(const std::string &file, int line, const std::string &for
 }
 
 #define LOG_INFO(fmt, ...)                                                            \
-    do                                                                                   \
-    {                                                                                    \
-        if (is_use_log)                                                                  \
-        {                                                                                \
+    do                                                                                \
+    {                                                                                 \
+        if (is_use_log)                                                               \
+        {                                                                             \
             Log::getInstance()->write_log(0, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
-        }                                                                                \
+        }                                                                             \
     } while (0)
 
 #define LOG_ERROR(fmt, ...)                                                           \
-    do                                                                                   \
-    {                                                                                    \
-        if (is_use_log)                                                                  \
-        {                                                                                \
+    do                                                                                \
+    {                                                                                 \
+        if (is_use_log)                                                               \
+        {                                                                             \
             Log::getInstance()->write_log(1, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
-        }                                                                                \
+        }                                                                             \
     } while (0)
 
-#define LOG_PRINT(fmt, ...)                                                   \
-    do                                                                        \
-    {                                                                         \
+#define LOG_PRINT(fmt, ...)                                                \
+    do                                                                     \
+    {                                                                      \
         Log::getInstance()->print(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
     } while (0)
