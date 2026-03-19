@@ -71,6 +71,7 @@ void Log::aysc_write()
             // 加锁后就算其他线程关闭了文件，也会再打开一个新的，这里写入的就是新文件了
             std::lock_guard<std::mutex> lock(m_mutex);
             m_file << log_msg << "\n";
+            m_file.flush();
         }
         else
         {
@@ -82,6 +83,7 @@ void Log::aysc_write()
     while (m_block_queue->pop(log_msg))
     {
         m_file << log_msg << "\n";
+        m_file.flush();
     }
 }
 

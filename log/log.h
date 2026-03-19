@@ -61,7 +61,7 @@ inline void Log::write_log(int level, const std::string &file, int line, const s
     std::tm tm{};
     localtime_r(&time_now, &tm);
 
-    std::string time_str = getTimeString(tm);
+    std::string time_str = getTimeString(tm).substr(11);
 
     // 日志文件按天划分
     if (m_today != tm.tm_mday)
@@ -97,6 +97,7 @@ inline void Log::write_log(int level, const std::string &file, int line, const s
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_file << log_msg << "\n";
+        m_file.flush();
     }
 }
 
