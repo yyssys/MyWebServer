@@ -1,4 +1,5 @@
 #include "webServer.h"
+#include <cerrno>
 
 webServer::webServer(const Config &config)
     : m_listenChannel(nullptr),
@@ -52,33 +53,49 @@ void webServer::run()
         nullptr);
     // 将监听所用的channel加入主反应堆
     m_mainDispatcher->add(m_listenChannel);
+
+    while (true)
+    {
+        m_mainDispatcher->dispatch();
+    }
 }
 
 void webServer::acceptConnection()
 {
-    struct sockaddr_in client_address;
-    socklen_t client_addrlength = sizeof(client_address);
-    int cfd = accept(m_lfd, (struct sockaddr *)&client_address, &client_addrlength);
-    if (cfd < 0)
+    while (true)
     {
-        LOG_ERROR("accept failed, errno: %d, errmsg: %s", errno, strerror(errno));
-        return;
-    }
-    char clientIp[64] = {0};
-    inet_ntop(AF_INET, &client_address.sin_addr, clientIp, sizeof(clientIp));
-    LOG_INFO("与客户端建立连接,客户端IP: %s,端口: %d", clientIp, ntohs(client_address.sin_port));
-    // 从线程池中取出一个反应堆实例去处理这个cfd
-    Dispatcher *dispatcher = m_threadPool->getDispatcher();
+        struct sockaddr_in client_address{};
+        socklen_t client_addrlength = sizeof(client_address);
+        int cfd = accept(m_lfd, (struct sockaddr *)&client_address, &client_addrlength);
+        if (cfd < 0)
+        {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                return;
+            }
+            LOG_ERROR("accept failed, errno: {}, errmsg: {}", errno, strerror(errno));
+            return;
+        }
+        char clientIp[64] = {0};
+        inet_ntop(AF_INET, &client_address.sin_addr, clientIp, sizeof(clientIp));
+        LOG_INFO("与客户端建立连接,客户端IP: {},端口: {}", clientIp, ntohs(client_address.sin_port));
+        // 从线程池中取出一个反应堆实例去处理这个cfd
+        Dispatcher *dispatcher = m_threadPool->getDispatcher();
 
-    // 根据反应堆和通信fd创建httpConn
-    auto connection = std::make_unique<HttpConnection>(
-        m_config,
-        cfd,
-        dispatcher,
-        std::bind(&webServer::removeConnection, this, std::placeholders::_1));
-    // 加入连接队列。加锁是因为有可能子线程正在调用removeConnection释放连接
-    std::lock_guard<std::mutex> lock(m_connectionMutex);
-    m_connections.emplace(cfd, std::move(connection));
+        auto connection = std::make_unique<HttpConnection>(
+            m_config,
+            cfd,
+            dispatcher,
+            std::bind(&webServer::removeConnection, this, std::placeholders::_1));
+        // 加入连接队列。加锁是因为有可能子线程正在调用removeConnection释放连接
+        std::lock_guard<std::mutex> lock(m_connectionMutex);
+        m_connections.emplace(cfd, std::move(connection));
+
+        if (m_config.triggerMode != TriggerMode::ET)
+        {
+            return;
+        }
+    }
 }
 // 传给httpConnection的回调函数，用来断开连接时从webServer里面销毁连接
 void webServer::removeConnection(int fd)
