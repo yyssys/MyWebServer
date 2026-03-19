@@ -32,7 +32,7 @@ public:
     int listenPort;
     bool enableLogging;
     LogWriteMode logWriteMode;
-    int databaseConnectionCount;
+    int sqlConnCount;
     int workerThreadCount;
     ReactorType reactorType;
     TriggerMode triggerMode;

@@ -8,7 +8,7 @@ Config::Config()
     : listenPort(10000),
       enableLogging(true),
       logWriteMode(LogWriteMode::Sync),
-      databaseConnectionCount(8),
+      sqlConnCount(8),
       workerThreadCount(std::thread::hardware_concurrency()),
       reactorType(ReactorType::Epoll),
       triggerMode(TriggerMode::LT)
@@ -64,7 +64,7 @@ void Config::parseCommandLine(int argc, char *argv[])
             logWriteMode = parseLogWriteMode(optarg);
             break;
         case 's':
-            databaseConnectionCount = std::atoi(optarg);
+            sqlConnCount = std::atoi(optarg);
             break;
         case 't':
             workerThreadCount = std::atoi(optarg);
