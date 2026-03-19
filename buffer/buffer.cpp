@@ -75,22 +75,6 @@ char *Buffer::findCRLF()
     return ptr;
 }
 
-int Buffer::sendData(int socket)
-{
-    const int readable = readAbleSize();
-    if (readable <= 0)
-    {
-        return 0;
-    }
-
-    const int count = send(socket, data + readPos, readable, MSG_NOSIGNAL);
-    if (count > 0)
-    {
-        updateReadPos(count);
-    }
-    return count;
-}
-
 void Buffer::updateReadPos(int count)
 {
     if (count <= 0)
@@ -98,6 +82,15 @@ void Buffer::updateReadPos(int count)
         return;
     }
     readPos += count;
+}
+
+void Buffer::updateWritePos(int count)
+{
+    if (count <= 0)
+    {
+        return;
+    }
+    writePos += count;
 }
 
 void Buffer::retrieveAll()

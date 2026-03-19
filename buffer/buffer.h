@@ -22,12 +22,12 @@ public:
     // 把读到的数据添加到缓存中
     int appendData(const char *data, int size);
     int appendData(const std::string &data);
-    int sendData(int socket);
 
     // 找到\r\n在数据块中的位置, 返回该位置
     char *findCRLF();
 
     void updateReadPos(int count);
+    void updateWritePos(int count);
     void retrieveAll();
 
 public:
