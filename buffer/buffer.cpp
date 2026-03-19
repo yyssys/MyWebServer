@@ -17,12 +17,12 @@ Buffer::~Buffer()
     }
 }
 
-void Buffer::extendRoom(int size)
+bool Buffer::extendRoom(int size)
 {
     // 1. 内存够用 - 不需要扩容
     if (writeAbleSize() >= size)
     {
-        return;
+        return true;
     }
     // 2. 内存需要合并才够用 - 不需要扩容
     // 剩余的可写的内存 + 已读的内存 > size
@@ -31,10 +31,11 @@ void Buffer::extendRoom(int size)
         // 得到未读的内存大小
         int readable = readAbleSize();
         // 移动内存
-        memcpy(data, data + readPos, readable);
+        memmove(data, data + readPos, readable);
         // 更新位置
         readPos = 0;
         writePos = readable;
+        return true;
     }
     // 3. 内存不够用 - 扩容
     else
@@ -42,12 +43,13 @@ void Buffer::extendRoom(int size)
         void *temp = realloc(data, capacity + size);
         if (temp == NULL)
         {
-            return; // 失败了
+            return false;
         }
         memset((char *)temp + capacity, 0, size);
         // 更新数据
         data = static_cast<char *>(temp);
         capacity += size;
+        return true;
     }
 }
 
@@ -58,7 +60,10 @@ int Buffer::appendData(const char *s, int size)
         return -1;
     }
 
-    extendRoom(size);
+    if (!extendRoom(size))
+    {
+        return -1;
+    }
     memcpy(data + writePos, s, size);
     writePos += size;
     return 0;

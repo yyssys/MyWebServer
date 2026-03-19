@@ -8,7 +8,7 @@ public:
     ~Buffer();
 
     // 扩容
-    void extendRoom(int size);
+    bool extendRoom(int size);
     // 得到剩余的可写的内存容量
     int writeAbleSize()
     {

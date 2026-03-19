@@ -106,14 +106,6 @@ void HttpConnection::CallbackProcessRead()
 
 void HttpConnection::CallbackProcessWrite()
 {
-    if (m_writeBuf.readAbleSize() <= 0)
-    {
-        // 不再检测写事件
-        m_channel->setWriteEnabled(false);
-        m_dispatcher->modify(m_channel);
-        init();
-        return;
-    }
     while (true)
     {
         const int bytes_to_send = m_iv[0].iov_len + (m_iv_count == 2 ? m_iv[1].iov_len : 0);
