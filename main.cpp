@@ -1,8 +1,10 @@
 #include "webServer.h"
 #include "config/config.h"
 #include "sql_conn_pool/sql_conn_pool.h"
+#include <signal.h>
 int main(int argc, char *argv[])
 {
+    signal(SIGPIPE, SIG_IGN);
     // 数据库配置
     const std::string url = "127.0.0.1:3306";
     const std::string root = "root";

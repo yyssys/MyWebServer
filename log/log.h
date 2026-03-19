@@ -125,8 +125,11 @@ inline void Log::print(const std::string &file, int line, const std::string &for
         }                                                                             \
     } while (0)
 
-#define LOG_PRINT(fmt, ...)                                                \
-    do                                                                     \
-    {                                                                      \
-        Log::getInstance()->print(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+#define LOG_PRINT(fmt, ...)                                                    \
+    do                                                                         \
+    {                                                                          \
+        if (is_use_log)                                                        \
+        {                                                                      \
+            Log::getInstance()->print(__FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+        }                                                                      \
     } while (0)
