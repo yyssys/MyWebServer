@@ -129,7 +129,7 @@ int EpollDispatcher::updateEpoll(Channel *channel, int op)
         events |= EPOLLOUT | EPOLLRDHUP;
     }
 
-    if (m_config.triggerMode == TriggerMode::EdgeTriggered)
+    if (m_config.triggerMode == TriggerMode::ET)
     {
         events |= EPOLLET;
     }
