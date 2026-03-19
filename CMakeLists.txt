@@ -8,9 +8,6 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(
-        -Wall
-        -Wextra
-        -Wpedantic
         # 只影响 __FILE__ 宏的输出 -fmacro-prefix-map=old=new
         # 所有 __FILE__ 宏输出的路径中，只要以 old 开头，就会把 old 部分删掉，只保留后面的相对路径。
         -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
@@ -51,6 +48,8 @@ add_executable(tinyWebServer
     threadpool/threadpool.cpp
     threadpool/worker_thread.cpp
 )
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR})
 
 target_include_directories(tinyWebServer
     PRIVATE

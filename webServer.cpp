@@ -4,9 +4,9 @@
 webServer::webServer(const Config &config)
     : m_listenChannel(nullptr),
       m_mainDispatcher(nullptr),
-      is_use_log(config.enableLogging),
       m_threadPool(nullptr),
-      m_config(config)
+      m_config(config),
+      is_use_log(config.enableLogging)
 {
     setListen();
 }
@@ -82,11 +82,11 @@ void webServer::acceptConnection()
         // 从线程池中取出一个反应堆实例去处理这个cfd
         Dispatcher *dispatcher = m_threadPool->getDispatcher();
 
-        auto connection = std::make_unique<HttpConnection>(
+        std::unique_ptr<HttpConnection> connection(new HttpConnection(
             m_config,
             cfd,
             dispatcher,
-            std::bind(&webServer::removeConnection, this, std::placeholders::_1));
+            std::bind(&webServer::removeConnection, this, std::placeholders::_1)));
         // 加入连接队列。加锁是因为有可能子线程正在调用removeConnection释放连接
         std::lock_guard<std::mutex> lock(m_connectionMutex);
         m_connections.emplace(cfd, std::move(connection));

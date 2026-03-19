@@ -67,7 +67,7 @@ private:
     int m_queue_size;         // 创建动态数组的长度
     int m_front;              // 取元素标志位
     int m_back;               // 插入标志位
-    unsigned int m_curr_size; // 当前队列中元素个数
+    int m_curr_size; // 当前队列中元素个数
 
     std::mutex m_mutex;             // 互斥访问队列以及互斥修改队列相关的属性
     std::condition_variable m_cond; // 队列为空时阻塞线程的条件变量

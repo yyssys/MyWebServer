@@ -161,7 +161,7 @@ void HttpConnection::CallbackProcessWrite()
             m_iv[0].iov_len = 0;
             if (m_iv_count == 2 && fileSent > 0)
             {
-                m_iv[1].iov_base = m_iv[1].iov_base + fileSent;
+                m_iv[1].iov_base = static_cast<char*>(m_iv[1].iov_base) + fileSent;
                 m_iv[1].iov_len -= fileSent;
             }
         }
