@@ -50,6 +50,32 @@
             z-index: 2;
         }
 
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translate(-50%, -24px);
+            min-width: 280px;
+            max-width: min(92vw, 420px);
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(191, 38, 59, 0.92);
+            color: #fff;
+            box-shadow: 0 18px 40px rgba(80, 13, 24, 0.28);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.28s ease, transform 0.28s ease;
+            z-index: 10;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
         .logo {
             font-size: 24px;
             font-weight: 700;
@@ -330,6 +356,10 @@
 
 <body>
 
+    <div id="login-toast" class="toast" role="alert" aria-live="assertive">
+        用户名不存在或密码错误，请重新输入。
+    </div>
+
     <header class="header">
         <div class="logo">C++ Learning Home</div>
         <div class="header-right">欢迎回来，开始你的学习之旅</div>
@@ -389,6 +419,29 @@
     <footer class="footer">
         © 2026 C++ Learning Home. All Rights Reserved.
     </footer>
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("error") !== "1") {
+                return;
+            }
+
+            const toast = document.getElementById("login-toast");
+            if (!toast) {
+                return;
+            }
+
+            toast.classList.add("show");
+            window.setTimeout(function () {
+                toast.classList.remove("show");
+            }, 2600);
+
+            if (window.history.replaceState) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        })();
+    </script>
 
 </body>
 

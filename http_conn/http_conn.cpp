@@ -335,7 +335,8 @@ HttpCode HttpConnection::parse_request_line(std::string &s)
             url = url.substr(pos);
         }
     }
-    m_url = url;
+    const int queryPos = url.find('?');
+    m_url = queryPos == std::string::npos ? url : url.substr(0, queryPos);
     // 请求必须以'/'开始
     if (m_url.size() == 0 || m_url[0] != '/')
         return HttpCode::ReqError;
@@ -454,7 +455,7 @@ HttpCode HttpConnection::prepareResponse()
                 }
                 else
                 {
-                    targetFile = "/loginError.html";
+                    targetFile = "/login.html?error=1";
                 }
             }
             // 注册检测
@@ -467,7 +468,7 @@ HttpCode HttpConnection::prepareResponse()
 
                 if (res->next())
                 {
-                    targetFile = "/registerError.html";
+                    targetFile = "/register.html?error=1";
                 }
                 else
                 {
