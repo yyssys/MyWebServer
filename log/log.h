@@ -23,7 +23,7 @@ public:
     Log(const Log &) = delete;
     Log &operator=(const Log &) = delete;
     // 初始化
-    void init(Config &config, std::string file = "./server.log");
+    void init(const Config &config, std::string file = "./server.log");
     // 写入日志
     template <class... Args>
     void write_log(int level, const std::string &file, int line, const std::string &format, Args... args);

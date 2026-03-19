@@ -2,7 +2,7 @@
 #include <iostream>
 #include "log.h"
 
-void Log::init(Config &config, std::string file = "./server.log")
+void Log::init(const Config &config, std::string file)
 {
     // 使用异步写
     if (config.logWriteMode == LogWriteMode::Async)
