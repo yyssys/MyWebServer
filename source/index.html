@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ 编程语言首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #222;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 顶部导航 */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .navbar {
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: #5b6df8;
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            font-size: 15px;
+            color: #444;
+        }
+
+        .nav-links a:hover {
+            color: #5b6df8;
+        }
+
+        .nav-btn {
+            padding: 10px 18px;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #6478f6, #7d4fc2);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(99, 116, 246, 0.22);
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #5b7cfa 0%, #7b4bb7 100%);
+            color: #fff;
+            padding: 90px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before,
+        .hero::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.28;
+        }
+
+        .hero::before {
+            width: 260px;
+            height: 260px;
+            background: #ffffff;
+            top: 30px;
+            left: -60px;
+        }
+
+        .hero::after {
+            width: 320px;
+            height: 320px;
+            background: #ffffff;
+            right: -100px;
+            bottom: -60px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: 52px;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .hero-text p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.92);
+            margin-bottom: 28px;
+            max-width: 620px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            display: inline-block;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.25s ease;
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #5b6df8;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .hero-card {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .hero-card h3 {
+            font-size: 22px;
+            margin-bottom: 14px;
+        }
+
+        .hero-card ul li {
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.94);
+            padding-left: 18px;
+            position: relative;
+        }
+
+        .hero-card ul li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        /* 通用 section */
+        .section {
+            padding: 72px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 14px;
+            font-size: 34px;
+            color: #2c2f3a;
+            font-weight: 800;
+        }
+
+        .section-desc {
+            text-align: center;
+            max-width: 760px;
+            margin: 0 auto 42px;
+            color: #6d7385;
+            font-size: 16px;
+        }
+
+        /* 特点 */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 22px;
+        }
+
+        .feature-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 28px 22px;
+            box-shadow: 0 10px 28px rgba(27, 39, 94, 0.08);
+            transition: 0.25s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6677f7, #7f52c2);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #2f3445;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: #72798c;
+        }
+
+        /* 学习路线 */
+        .roadmap {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .roadmap-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+            border: 1px solid #eef1f8;
+            border-radius: 18px;
+            padding: 28px 24px;
+            box-shadow: 0 10px 24px rgba(28, 44, 98, 0.06);
+        }
+
+        .roadmap-step {
+            display: inline-block;
+            font-size: 13px;
+            color: #6677f7;
+            background: rgba(102, 119, 247, 0.1);
+            padding: 6px 12px;
+            border-radius: 999px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .roadmap-card h3 {
+            margin-bottom: 14px;
+            color: #2d3243;
+        }
+
+        .roadmap-card ul li {
+            margin-bottom: 10px;
+            color: #697084;
+            position: relative;
+            padding-left: 18px;
+        }
+
+        .roadmap-card ul li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #6677f7;
+            font-weight: 700;
+        }
+
+        /* 代码示例 */
+        .code-section {
+            background: linear-gradient(135deg, #1d2333 0%, #2f1f52 100%);
+            color: #fff;
+        }
+
+        .code-wrap {
+            display: grid;
+            grid-template-columns: 0.95fr 1.05fr;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .code-text h2 {
+            font-size: 34px;
+            margin-bottom: 16px;
+        }
+
+        .code-text p {
+            color: rgba(255, 255, 255, 0.84);
+            font-size: 16px;
+        }
+
+        .code-box {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+        }
+
+        .code-header {
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.08);
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        pre {
+            margin: 0;
+            padding: 24px;
+            overflow-x: auto;
+            font-size: 15px;
+            line-height: 1.8;
+            color: #f3f4f8;
+        }
+
+        /* 底部 */
+        .footer {
+            background: #161c2d;
+            color: rgba(255, 255, 255, 0.78);
+            padding: 24px 0;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 992px) {
+
+            .hero-content,
+            .code-wrap,
+            .features-grid,
+            .roadmap {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .hero-text h1 {
+                font-size: 42px;
+            }
+
+            .features-grid .feature-card:last-child {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                height: auto;
+                padding: 18px 0;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 16px;
+            }
+
+            .hero {
+                padding: 70px 0 60px;
+            }
+
+            .hero-content,
+            .features-grid,
+            .roadmap,
+            .code-wrap {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-text h1 {
+                font-size: 34px;
+            }
+
+            .hero-text p {
+                font-size: 16px;
+            }
+
+            .section-title,
+            .code-text h2 {
+                font-size: 28px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: 92%;
+            }
+
+            .hero-text h1 {
+                font-size: 28px;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                text-align: center;
+            }
+
+            pre {
+                font-size: 13px;
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="container navbar">
+            <div class="logo">C++</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#intro">语言介绍</a></li>
+                    <li><a href="#features">核心特点</a></li>
+                    <li><a href="#roadmap">学习路线</a></li>
+                    <li><a href="#example">代码示例</a></li>
+                </ul>
+            </nav>
+            <a href="login.html" class="nav-btn">立即登录</a>
+        </div>
+    </header>
+
+    <section class="hero" id="intro">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <h1>探索 C++ 的力量，构建高性能世界</h1>
+                <p>
+                    C++ 是一门兼具性能、抽象能力与工程实践价值的编程语言，
+                    广泛应用于操作系统、游戏开发、图形引擎、金融系统、嵌入式开发和高性能服务端。
+                </p>
+                <div class="hero-actions">
+                    <a href="#features" class="btn-primary">开始了解</a>
+                    <a href="#example" class="btn-secondary">查看示例代码</a>
+                </div>
+            </div>
+
+            <div class="hero-card">
+                <h3>为什么学习 C++？</h3>
+                <ul>
+                    <li>接近底层，性能优秀，适合高性能应用</li>
+                    <li>支持面向对象、泛型编程与现代工程实践</li>
+                    <li>在竞赛、系统开发、图形学中地位重要</li>
+                    <li>掌握后更容易理解计算机底层运行机制</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="features">
+        <div class="container">
+            <h2 class="section-title">C++ 核心特点</h2>
+            <p class="section-desc">
+                C++ 既保留了高性能语言的执行效率，也提供了现代开发所需的抽象能力，
+                是一门兼顾底层控制与大型工程开发的经典语言。
+            </p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">01</div>
+                    <h3>高性能</h3>
+                    <p>编译执行、运行效率高，适合对性能和资源控制要求严格的项目场景。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">02</div>
+                    <h3>面向对象</h3>
+                    <p>支持类、继承、多态与封装，便于构建结构清晰、可维护的大型程序。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">03</div>
+                    <h3>泛型编程</h3>
+                    <p>模板与 STL 极大提升了代码复用能力，是 C++ 工程能力的重要体现。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">04</div>
+                    <h3>贴近底层</h3>
+                    <p>支持指针、内存控制与系统级接口，适合理解计算机系统运行原理。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="roadmap">
+        <div class="container">
+            <h2 class="section-title">学习路线建议</h2>
+            <p class="section-desc">
+                从基础语法到现代 C++，循序渐进地掌握核心概念，再进入项目实践，
+                能让学习过程更清晰、更高效。
+            </p>
+
+            <div class="roadmap">
+                <div class="roadmap-card">
+                    <div class="roadmap-step">阶段一 · 入门基础</div>
+                    <h3>打好语法基础</h3>
+                    <ul>
+                        <li>变量、常量、数据类型</li>
+                        <li>条件语句与循环结构</li>
+                        <li>函数与数组</li>
+                        <li>指针与引用基础</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-card">
+                    <div class="roadmap-step">阶段二 · 核心提升</div>
+                    <h3>掌握核心能力</h3>
+                    <ul>
+                        <li>类与对象、构造析构</li>
+                        <li>继承、封装、多态</li>
+                        <li>模板与异常处理</li>
+                        <li>STL 容器与算法</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-card">
+                    <div class="roadmap-step">阶段三 · 实战进阶</div>
+                    <h3>进入工程实践</h3>
+                    <ul>
+                        <li>智能指针与现代 C++</li>
+                        <li>文件操作与模块化设计</li>
+                        <li>数据结构与算法实现</li>
+                        <li>项目实战与性能优化</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section code-section" id="example">
+        <div class="container code-wrap">
+            <div class="code-text">
+                <h2>简单的 C++ 示例</h2>
+                <p>
+                    下面是一段非常经典的 C++ 入门示例，展示了标准输入输出、
+                    函数定义与调用的基本形式。你可以在此基础上继续扩展更多逻辑。
+                </p>
+            </div>
+
+            <div class="code-box">
+                <div class="code-header">example.cpp</div>
+                <pre><code>#include &lt;iostream&gt;
+using namespace std;
+
+int add(int a, int b) {
+    return a + b;
+}
+
+int main() {
+    int x, y;
+    cout &lt;&lt; "请输入两个整数：";
+    cin &gt;&gt; x &gt;&gt; y;
+
+    cout &lt;&lt; "它们的和是：" &lt;&lt; add(x, y) &lt;&lt; endl;
+    return 0;
+}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        © 2026 C++ Learning Home. All Rights Reserved.
+    </footer>
+
+</body>
+
+</html>

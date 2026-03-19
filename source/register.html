@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #2f7f6d 0%, #63b58c 100%);
+            color: #1c2b24;
+            display: flex;
+            flex-direction: column;
+        }
+        .header, .footer {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            color: #fff;
+        }
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            width: 360px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 36px 30px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+        .title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 26px;
+        }
+        .input-group { margin-bottom: 18px; }
+        .input-group input {
+            width: 100%;
+            height: 46px;
+            border: 1px solid #d7dfdb;
+            border-radius: 10px;
+            padding: 0 12px;
+            font-size: 15px;
+        }
+        .submit-btn {
+            width: 100%;
+            height: 46px;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            background: linear-gradient(90deg, #2f7f6d, #63b58c);
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .extra {
+            text-align: center;
+            margin-top: 18px;
+            color: #617068;
+        }
+        .extra a { color: #2f7f6d; text-decoration: none; }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div>C++</div>
+        <a href="index.html" style="color:#fff;text-decoration:none;">返回首页</a>
+    </div>
+
+    <div class="main">
+        <div class="card">
+            <div class="title">创建账号</div>
+            <form action="3CGISQL.cgi" method="post">
+                <div class="input-group">
+                    <input type="text" name="user" placeholder="用户名" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="设置密码" required>
+                </div>
+                <button type="submit" class="submit-btn">注册</button>
+            </form>
+            <div class="extra">
+                已有账号？<a href="log.html">去登录</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">© 2026 C++ Learning Home</div>
+</body>
+
+</html>
