@@ -76,17 +76,7 @@ bool MysqlConnPool::isConnectionValid(sql::Connection *conn)
     {
         return false;
     }
-    // 执行一次查询，若失败execute抛出异常则说明连接不健康，返回false
-    try
-    {
-        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        stmt->execute("SELECT 1");
-        return true;
-    }
-    catch (...)
-    {
-        return false;
-    }
+    return conn->isValid();
 }
 
 auto MysqlConnPool::acquire() -> std::shared_ptr<sql::Connection>
