@@ -114,12 +114,23 @@ void HttpConnection::CallbackProcessWrite()
         init();
         return;
     }
-    // 总共还需要发送的字节
-    int bytes_to_send = m_writeBuf.readAbleSize() + m_file_stat.st_size;
-    // 已经发送的字节
-    int bytes_have_send = 0;
-    while (1)
+    while (true)
     {
+        const int bytes_to_send = m_iv[0].iov_len + (m_iv_count == 2 ? m_iv[1].iov_len : 0);
+        if (bytes_to_send <= 0)
+        {
+            unmap();
+            m_channel->setWriteEnabled(false);
+            m_dispatcher->modify(m_channel);
+            if (m_alive)
+            {
+                init();
+                return;
+            }
+            closeConnection();
+            return;
+        }
+
         const int count = writev(m_channel->getFd(), m_iv, m_iv_count);
 
         if (count < 0)
@@ -138,39 +149,27 @@ void HttpConnection::CallbackProcessWrite()
         }
         else if (count == 0)
         {
-            break;
+            return;
         }
-        bytes_have_send += count;
-        bytes_to_send -= count;
-        if (count >= m_writeBuf.readAbleSize())
+
+        if (count >= m_iv[0].iov_len)
         {
-            m_writeBuf.updateReadPos(m_writeBuf.readAbleSize());
+            const int headerSent = m_iv[0].iov_len;
+            const int fileSent = count - headerSent;
+            m_writeBuf.updateReadPos(headerSent);
+            m_iv[0].iov_base = m_writeBuf.data + m_writeBuf.readPos;
             m_iv[0].iov_len = 0;
-            m_iv[1].iov_base = m_mmap_address + (bytes_have_send - m_writeBuf.readAbleSize());
-            m_iv[1].iov_len = bytes_to_send;
+            if (m_iv_count == 2 && fileSent > 0)
+            {
+                m_iv[1].iov_base = m_iv[1].iov_base + fileSent;
+                m_iv[1].iov_len -= fileSent;
+            }
         }
         else
         {
             m_writeBuf.updateReadPos(count);
-            m_iv[0].iov_base = m_readBuf.data + m_readBuf.readPos;
-            m_iv[0].iov_len -= bytes_have_send;
-        }
-        if (bytes_to_send <= 0)
-        {
-            // 发送完了，不再检测写事件
-            m_channel->setWriteEnabled(false);
-            m_dispatcher->modify(m_channel);
-
-            if (m_alive)
-            {
-                init();
-                return;
-            }
-            // 连接不保活则在一次请求响应后断开连接
-            else
-            {
-                closeConnection();
-            }
+            m_iv[0].iov_base = m_writeBuf.data + m_writeBuf.readPos;
+            m_iv[0].iov_len -= count;
         }
     }
 }
@@ -240,8 +239,10 @@ int HttpConnection::ETRead()
 
 void HttpConnection::init()
 {
+    unmap();
     m_readBuf.retrieveAll();
     m_writeBuf.retrieveAll();
+    m_readClosed = false;
     m_curParseState = ParseState::ParseReqLine;
     m_method = Method::GET;
     m_url.clear();
@@ -249,6 +250,7 @@ void HttpConnection::init()
     m_content_length = 0;
     m_alive = false;
     m_body.clear();
+    m_iv_count = 0;
 }
 
 HttpCode HttpConnection::process_read()
@@ -416,6 +418,11 @@ HttpCode HttpConnection::parse_request_content()
 HttpCode HttpConnection::prepareResponse()
 {
     m_soucePath = m_config.rootPath;
+    // 添加..路径拦截
+    if (m_url.find("..") != std::string::npos)
+    {
+        return HttpCode::ReqForbidden;
+    }
 
     if (m_method == Method::POST && (m_url == "/2CGISQL.cgi" || m_url == "/3CGISQL.cgi"))
     {
@@ -493,9 +500,28 @@ HttpCode HttpConnection::prepareResponse()
     // 没有权限访问
     if (!(m_file_stat.st_mode & S_IROTH))
         return HttpCode::ReqForbidden;
+
+    if (m_file_stat.st_size == 0)
+    {
+        m_mmap_address = nullptr;
+        LOG_PRINT("访问资源：{}", m_soucePath);
+        return HttpCode::ReqFile;
+    }
+
     int fd = open(m_soucePath.c_str(), O_RDONLY);
-    m_mmap_address = (char *)mmap(0, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (fd < 0)
+    {
+        LOG_ERROR("open failed for {}: {}", m_soucePath, std::strerror(errno));
+        return HttpCode::InternelError;
+    }
+    m_mmap_address = static_cast<char *>(mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0));
     close(fd);
+    if (m_mmap_address == MAP_FAILED)
+    {
+        m_mmap_address = nullptr;
+        LOG_ERROR("mmap failed for {}: {}", m_soucePath, std::strerror(errno));
+        return HttpCode::InternelError;
+    }
     LOG_PRINT("访问资源：{}", m_soucePath);
     return HttpCode::ReqFile;
 }
@@ -537,6 +563,7 @@ bool HttpConnection::process_write(HttpCode ret)
             const char *ok_string = "<html><body></body></html>";
             add_headers(strlen(ok_string));
             add_content(ok_string);
+            break;
         }
     default:
         return false;
@@ -652,6 +679,7 @@ void HttpConnection::closeConnection()
         return;
     }
 
+    unmap();
     const int fd = m_channel->getFd();
     Channel *channel = m_channel;
     m_channel = nullptr;
