@@ -1,11 +1,16 @@
 #pragma once
 #include <functional>
+#include <unordered_map>
+#include <sys/stat.h>
 #include <string>
 #include <sys/uio.h>
 #include "dispatcher/dispatcher.h"
 #include "channel/channel.h"
 #include "config/config.h"
 #include "buffer/buffer.h"
+#include "sql_conn_pool/sql_conn_pool.h"
+#include <sys/mman.h>
+#include <fmt/core.h>
 
 enum class LineStatus
 {
@@ -15,7 +20,7 @@ enum class LineStatus
 };
 
 // 解析状态
-enum class ParseState : char
+enum class ParseState
 {
     ParseReqLine,
     ParseReqHeaders,
@@ -62,14 +67,13 @@ public:
     void CallbackProcessClose();
     int LTRead();
     int ETRead();
-    int LTWrite();
-    int ETWrite();
 
 private:
+    void init();
     // 解析http请求并准备响应消息
     HttpCode process_read();
     // 根据返回值来准备要发送的数据
-    HttpCode process_write(HttpCode ret);
+    bool process_write(HttpCode ret);
 
     // 取出buffer中的一行
     LineStatus get_one_line(std::string &oneLine);
@@ -83,9 +87,33 @@ private:
     // 解析请求体
     HttpCode parse_request_content();
 
+    // 准备响应的数据
+    HttpCode prepareResponse();
+    // 字符解码
+    std::string urlDecode(const std::string &value) const;
+    // 解析出用户名和密码
+    std::unordered_map<std::string, std::string> parseFormUrlEncoded(const std::string &body) const;
+    // 添加状态行
+    void add_status_line(int status, std::string msg);
+    // 添加头
+    void add_headers(int len);
+    void add_content_length(int len);
+    void add_keep_alive();
+    void add_content_type();
+    void add_blank_line();
+    // 添加数据块
+    void add_content(const char *content);
+
+    template <class... Args>
+    void add_response(const std::string &format, Args &&...args);
+
+    // 关闭打开的mmap映射
+    void unmap();
+
     // 关闭httpConn连接并释放对应的数据
     void closeConnection();
 
+private:
     Dispatcher *m_dispatcher;
     Channel *m_channel;
     CloseCallback m_closeCallback; // 销毁当前httpConn的回调
@@ -95,6 +123,7 @@ private:
     bool is_use_log;
     bool m_readClosed;          // 用来标记对端是否关闭
     ParseState m_curParseState; // 解析http请求状态
+    std::string m_soucePath;    // 资源路径
 
     Method m_method;       // 请求行-请求方法
     std::string m_url;     // 请求行-请求地址
@@ -103,4 +132,16 @@ private:
     bool m_alive;          // 请求头-连接是否保活
 
     std::string m_body; // 请求体-数据
+
+    struct stat m_file_stat;
+    char *m_mmap_address;
+
+    struct iovec m_iv[2];
+    int m_iv_count;
 };
+
+template <class... Args>
+inline void HttpConnection::add_response(const std::string &format, Args &&...args)
+{
+    m_writeBuf.appendData(fmt::format(format, (args)...));
+}
