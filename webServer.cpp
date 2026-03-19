@@ -78,7 +78,7 @@ void webServer::acceptConnection()
         }
         char clientIp[64] = {0};
         inet_ntop(AF_INET, &client_address.sin_addr, clientIp, sizeof(clientIp));
-        LOG_INFO("与客户端建立连接,客户端IP: {},端口: {}", clientIp, ntohs(client_address.sin_port));
+        LOG_INFO("建立连接,IP: {},port: {},fd: {}", clientIp, ntohs(client_address.sin_port), cfd);
         // 从线程池中取出一个反应堆实例去处理这个cfd
         Dispatcher *dispatcher = m_threadPool->getDispatcher();
 
