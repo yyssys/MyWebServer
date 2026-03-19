@@ -50,6 +50,7 @@ enum class HttpCode
     ReqNoResource, // 请求的资源不存在
     ReqForbidden,  // 请求的资源无权访问
     ReqFile,       // 请求文件
+    ReqRedirect,   // 重定向
     InternelError, // 内部错误
     CLOSED_CONNECTION
 };
@@ -98,6 +99,7 @@ private:
     // 添加头
     void add_headers(int len);
     void add_content_length(int len);
+    void add_location(const std::string &location);
     void add_keep_alive();
     void add_content_type();
     void add_blank_line();
@@ -132,6 +134,7 @@ private:
     bool m_alive;          // 请求头-连接是否保活
 
     std::string m_body; // 请求体-数据
+    std::string m_redirectLocation;
 
     struct stat m_file_stat;
     char *m_mmap_address;

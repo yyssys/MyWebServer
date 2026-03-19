@@ -161,7 +161,7 @@ void HttpConnection::CallbackProcessWrite()
             m_iv[0].iov_len = 0;
             if (m_iv_count == 2 && fileSent > 0)
             {
-                m_iv[1].iov_base = static_cast<char*>(m_iv[1].iov_base) + fileSent;
+                m_iv[1].iov_base = static_cast<char *>(m_iv[1].iov_base) + fileSent;
                 m_iv[1].iov_len -= fileSent;
             }
         }
@@ -250,6 +250,7 @@ void HttpConnection::init()
     m_content_length = 0;
     m_alive = false;
     m_body.clear();
+    m_redirectLocation.clear();
     m_iv_count = 0;
 }
 
@@ -261,7 +262,7 @@ HttpCode HttpConnection::process_read()
     oneLine.reserve(200);
     while ((line_status = get_one_line(oneLine)) == LineStatus::Line_OK)
     {
-        LOG_INFO("HttpReq: {}", oneLine);
+        LOG_INFO("{}", oneLine);
         switch (m_curParseState)
         {
         case ParseState::ParseReqLine:
@@ -484,8 +485,9 @@ HttpCode HttpConnection::prepareResponse()
             LOG_ERROR("sql execute failed: {}", e.what());
             return HttpCode::InternelError;
         }
-
-        m_soucePath += targetFile;
+        m_redirectLocation = targetFile;
+        LOG_INFO("重定向到: {}", m_redirectLocation);
+        return HttpCode::ReqRedirect;
     }
     else
     {
@@ -565,11 +567,17 @@ bool HttpConnection::process_write(HttpCode ret)
             add_content(ok_string);
             break;
         }
+    case HttpCode::ReqRedirect:
+        add_status_line(302, "Found");
+        add_location(m_redirectLocation);
+        add_content_length(0);
+        add_keep_alive();
+        add_blank_line();
+        break;
     default:
         return false;
     }
     m_iv[0].iov_base = m_writeBuf.data + m_writeBuf.readPos;
-    ;
     m_iv[0].iov_len = m_writeBuf.readAbleSize();
     m_iv_count = 1;
 
@@ -627,6 +635,7 @@ std::unordered_map<std::string, std::string> HttpConnection::parseFormUrlEncoded
 
 void HttpConnection::add_status_line(int status, std::string msg)
 {
+    LOG_PRINT("HTTP/1.1 {} {}", status, msg);
     add_response("{} {} {}\r\n", "HTTP/1.1", status, msg);
 }
 
@@ -641,6 +650,11 @@ void HttpConnection::add_headers(int len)
 void HttpConnection::add_content_length(int len)
 {
     add_response("Content-Length:{}\r\n", len);
+}
+
+void HttpConnection::add_location(const std::string &location)
+{
+    add_response("Location:{}\r\n", location);
 }
 
 void HttpConnection::add_keep_alive()
