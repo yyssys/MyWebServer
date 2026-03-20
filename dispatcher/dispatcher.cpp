@@ -1,17 +1,20 @@
 #include "dispatcher.h"
 
-Dispatcher::Dispatcher(const Config &config) : is_use_log(config.enableLogging), m_wakeupChannel(nullptr),
+Dispatcher::Dispatcher(const Config &config, bool enableTimer) : is_use_log(config.enableLogging), m_wakeupChannel(nullptr),
                                                m_wakeupFds{-1, -1}, m_timerfd(-1), m_ThreadId(std::this_thread::get_id()),
-                                               m_config(config), timeout(false)
+                                               m_config(config), timeout(false), m_enableTimer(enableTimer)
 {
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_wakeupFds) != 0)
     {
         LOG_ERROR("socketpair failed.");
     }
-    m_timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-    if (m_timerfd == -1)
+    if (m_enableTimer)
     {
-        LOG_ERROR("timerfd_create failed.");
+        m_timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+        if (m_timerfd == -1)
+        {
+            LOG_ERROR("timerfd_create failed.");
+        }
     }
 }
 
@@ -200,6 +203,11 @@ void Dispatcher::initWakeupChannel()
         nullptr,
         nullptr));
     add(m_wakeupChannel.get());
+
+    if (!m_enableTimer)
+    {
+        return;
+    }
 
     m_alarmChannel.reset(new Channel(
         m_timerfd,

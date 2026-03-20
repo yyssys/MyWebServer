@@ -28,13 +28,13 @@ void webServer::run()
     switch (m_config.reactorType)
     {
     case ReactorType::Epoll:
-        m_mainDispatcher = new EpollDispatcher(m_config);
+        m_mainDispatcher = new EpollDispatcher(m_config, false);
         break;
     case ReactorType::Poll:
-        m_mainDispatcher = new PollDispatcher(m_config);
+        m_mainDispatcher = new PollDispatcher(m_config, false);
         break;
     case ReactorType::Select:
-        m_mainDispatcher = new SelectDispatcher(m_config);
+        m_mainDispatcher = new SelectDispatcher(m_config, false);
         break;
     default:
         LOG_ERROR("反应堆模型选择错误");

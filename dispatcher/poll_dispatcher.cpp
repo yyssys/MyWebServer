@@ -1,6 +1,6 @@
 #include "poll_dispatcher.h"
 
-PollDispatcher::PollDispatcher(const Config &config) : Dispatcher(config), m_maxfd(0)
+PollDispatcher::PollDispatcher(const Config &config, bool enableTimer) : Dispatcher(config, enableTimer), m_maxfd(0)
 {
     for (int i = 0; i < MaxNode; ++i)
     {

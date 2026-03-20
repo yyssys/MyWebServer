@@ -1,7 +1,7 @@
 #include "epoll_dispatcher.h"
 
-EpollDispatcher::EpollDispatcher(const Config &config)
-    : Dispatcher(config), m_epollFd(-1)
+EpollDispatcher::EpollDispatcher(const Config &config, bool enableTimer)
+    : Dispatcher(config, enableTimer), m_epollFd(-1)
 {
     m_epollFd = epoll_create(10);
     if (m_epollFd == -1)

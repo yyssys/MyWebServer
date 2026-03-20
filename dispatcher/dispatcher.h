@@ -16,7 +16,7 @@
 class Dispatcher
 {
 public:
-    Dispatcher(const Config &config);
+    Dispatcher(const Config &config, bool enableTimer);
     // 添加
     virtual void add(Channel *channel) {}
     // 删除
@@ -65,6 +65,7 @@ protected:
     Timer m_timer;
     Config m_config;
     bool timeout;
+    bool m_enableTimer;
     static constexpr time_t TimerInterval = 5;
     static constexpr time_t ConnectionIdleTimeout = 15;
 };

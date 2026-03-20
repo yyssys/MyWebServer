@@ -33,13 +33,13 @@ void WorkerThread::worker()
     switch (m_config.reactorType)
     {
     case ReactorType::Epoll:
-        m_dispatcher = new EpollDispatcher(m_config);
+        m_dispatcher = new EpollDispatcher(m_config, true);
         break;
     case ReactorType::Poll:
-        m_dispatcher = new PollDispatcher(m_config);
+        m_dispatcher = new PollDispatcher(m_config, true);
         break;
     case ReactorType::Select:
-        m_dispatcher = new SelectDispatcher(m_config);
+        m_dispatcher = new SelectDispatcher(m_config, true);
         break;
     default:
         LOG_ERROR("反应堆模型选择错误");

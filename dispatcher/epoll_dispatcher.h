@@ -5,7 +5,7 @@
 class EpollDispatcher : public Dispatcher
 {
 public:
-    EpollDispatcher(const Config &config);
+    EpollDispatcher(const Config &config, bool enableTimer = true);
     ~EpollDispatcher();
 
     // 添加

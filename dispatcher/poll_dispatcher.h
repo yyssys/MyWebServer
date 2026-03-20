@@ -7,7 +7,7 @@
 class PollDispatcher : public Dispatcher
 {
 public:
-    PollDispatcher(const Config &config);
+    PollDispatcher(const Config &config, bool enableTimer = true);
     ~PollDispatcher() {}
 
     // 添加
