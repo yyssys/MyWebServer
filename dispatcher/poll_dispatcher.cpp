@@ -51,7 +51,7 @@ void PollDispatcher::add(Channel *channel)
         return;
     }
     // 主线程操作的话，需要先添加到阻塞队列中
-    addElement(channel, Operation::Add);
+    addElement(channel);
 }
 
 void PollDispatcher::remove(Channel *channel)

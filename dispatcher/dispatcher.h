@@ -10,19 +10,6 @@
 #include "channel/channel.h"
 #include "config/config.h"
 
-enum class Operation
-{
-    Add = 0,
-    Modify = 1,
-    Remove = 2
-};
-
-struct ElementType
-{
-    Channel *channel;
-    Operation operation;
-};
-
 class Dispatcher
 {
 public:
@@ -44,10 +31,10 @@ protected:
         return std::this_thread::get_id() == m_ThreadId;
     }
     // 向队列中添加元素
-    void addElement(Channel *channel, Operation operation);
+    void addElement(Channel *channel);
 
     // 取队列中的所有元素
-    std::deque<ElementType> takeQueueElements();
+    std::deque<Channel*> takeQueueElements();
     // 唤醒阻塞在poll,epoll,select的线程
     void notifyDispatcher();
     // 处理任务队列
@@ -65,6 +52,6 @@ protected:
     int m_wakeupFds[2]; // 唤醒套接字，0端读，1端写
     std::thread::id m_ThreadId;
     std::mutex m_QueueMutex;
-    std::deque<ElementType> m_TaskQueue;
+    std::deque<Channel*> m_TaskQueue;
     Config m_config;
 };

@@ -51,7 +51,7 @@ void webServer::run()
         nullptr));
     // 将监听所用的channel加入主反应堆
     m_mainDispatcher->add(m_listenChannel.get());
-
+    std::cout << "服务器启动成功..." << std::endl;
     while (true)
     {
         m_mainDispatcher->dispatch();

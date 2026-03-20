@@ -16,19 +16,19 @@ Dispatcher::~Dispatcher()
     close(m_wakeupFds[1]);
 }
 
-void Dispatcher::addElement(Channel *channel, Operation operation)
+void Dispatcher::addElement(Channel *channel)
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-        m_TaskQueue.push_back({channel, operation});
+        m_TaskQueue.push_back(channel);
     }
     notifyDispatcher();
 }
 
-std::deque<ElementType> Dispatcher::takeQueueElements()
+std::deque<Channel *> Dispatcher::takeQueueElements()
 {
     std::lock_guard<std::mutex> lock(m_QueueMutex);
-    std::deque<ElementType> tmpTaskQueue;
+    std::deque<Channel *> tmpTaskQueue;
     tmpTaskQueue.swap(m_TaskQueue);
     return tmpTaskQueue;
 }
@@ -45,23 +45,10 @@ void Dispatcher::notifyDispatcher()
 
 void Dispatcher::processTaskQueue()
 {
-    std::deque<ElementType> elementtype = takeQueueElements();
-    for (const ElementType &et : elementtype)
+    std::deque<Channel *> elementtype = takeQueueElements();
+    for (Channel *et : elementtype)
     {
-        switch (et.operation)
-        {
-        case Operation::Add:
-            add(et.channel);
-            break;
-        case Operation::Modify:
-            modify(et.channel);
-            break;
-        case Operation::Remove:
-            remove(et.channel);
-            break;
-        default:
-            break;
-        }
+        add(et);
     }
 }
 
