@@ -277,7 +277,7 @@ HttpCode HttpConnection::process_read()
     oneLine.reserve(200);
     while ((line_status = get_one_line(oneLine)) == LineStatus::Line_OK)
     {
-        // LOG_INFO("{}", oneLine);
+        LOG_INFO("{}", oneLine);
         switch (m_curParseState)
         {
         case ParseState::ParseReqLine:
@@ -522,7 +522,7 @@ HttpCode HttpConnection::prepareResponse()
     if (m_file_stat.st_size == 0)
     {
         m_mmap_address = nullptr;
-        LOG_PRINT("访问资源：{}", m_soucePath);
+        LOG_PRINT("Access：{}", m_soucePath);
         return HttpCode::ReqFile;
     }
 
@@ -540,7 +540,7 @@ HttpCode HttpConnection::prepareResponse()
         LOG_ERROR("mmap failed for {}: {}", m_soucePath, std::strerror(errno));
         return HttpCode::InternelError;
     }
-    LOG_PRINT("访问资源：{}", m_soucePath);
+    LOG_PRINT("Access：{}", m_soucePath);
     return HttpCode::ReqFile;
 }
 
@@ -712,7 +712,7 @@ void HttpConnection::closeConnection()
     unmap();
     const int fd = m_channel->getFd();
     m_dispatcher->remove(m_channel.get());
-    LOG_INFO("disconnect from {}.", m_channel->getFd());
+    LOG_INFO("Disconnect from {}.", m_channel->getFd());
     if (m_closeCallback)
     {
         m_closeCallback(fd);
