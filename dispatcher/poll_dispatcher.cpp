@@ -56,6 +56,11 @@ void PollDispatcher::add(Channel *channel)
 
 void PollDispatcher::remove(Channel *channel)
 {
+    if (!isInOwnerThread())
+    {
+        LOG_ERROR("poll remove must run in owner thread");
+        return;
+    }
     if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
     {
         LOG_ERROR("poll remove error");
@@ -80,6 +85,11 @@ void PollDispatcher::remove(Channel *channel)
 
 void PollDispatcher::modify(Channel *channel)
 {
+    if (!isInOwnerThread())
+    {
+        LOG_ERROR("poll modify must run in owner thread");
+        return;
+    }
     if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
     {
         LOG_ERROR("poll modify error");

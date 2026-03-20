@@ -27,6 +27,11 @@ void SelectDispatcher::add(Channel *channel)
 
 void SelectDispatcher::remove(Channel *channel)
 {
+    if (!isInOwnerThread())
+    {
+        LOG_ERROR("select remove must run in owner thread");
+        return;
+    }
     if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
     {
         LOG_ERROR("select remove error");
@@ -39,6 +44,11 @@ void SelectDispatcher::remove(Channel *channel)
 
 void SelectDispatcher::modify(Channel *channel)
 {
+    if (!isInOwnerThread())
+    {
+        LOG_ERROR("select modify must run in owner thread");
+        return;
+    }
     if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
     {
         LOG_ERROR("select modify error");

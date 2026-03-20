@@ -42,7 +42,8 @@ std::string getFileType(const std::string &path)
 }
 
 HttpConnection::HttpConnection(const Config &config, int fd, Dispatcher *dispatcher, CloseCallback closeCallback)
-    : m_dispatcher(dispatcher),
+    : m_fd(fd),
+      m_dispatcher(dispatcher),
       m_channel(nullptr),
       m_closeCallback(std::move(closeCallback)),
       m_config(config),
@@ -53,18 +54,40 @@ HttpConnection::HttpConnection(const Config &config, int fd, Dispatcher *dispatc
       m_alive(false),
       m_mmap_address(nullptr)
 {
-    m_channel = new Channel(
-        fd,
-        FDEvent::ReadEvent,
-        std::bind(&HttpConnection::CallbackProcessRead, this),
-        std::bind(&HttpConnection::CallbackProcessWrite, this),
-        std::bind(&HttpConnection::CallbackProcessClose, this));
-    m_dispatcher->add(m_channel);
 }
 
 HttpConnection::~HttpConnection()
 {
-    delete m_channel;
+}
+
+void HttpConnection::add()
+{
+    std::weak_ptr<HttpConnection> weakSelf = shared_from_this();
+    m_channel.reset(new Channel(
+        m_fd,
+        FDEvent::ReadEvent,
+        [weakSelf]()
+        {
+            if (std::shared_ptr<HttpConnection> self = weakSelf.lock())
+            {
+                self->CallbackProcessRead();
+            }
+        },
+        [weakSelf]()
+        {
+            if (std::shared_ptr<HttpConnection> self = weakSelf.lock())
+            {
+                self->CallbackProcessWrite();
+            }
+        },
+        [weakSelf]()
+        {
+            if (std::shared_ptr<HttpConnection> self = weakSelf.lock())
+            {
+                self->CallbackProcessClose();
+            }
+        }));
+    m_dispatcher->add(m_channel.get());
 }
 
 void HttpConnection::CallbackProcessRead()
@@ -100,7 +123,7 @@ void HttpConnection::CallbackProcessRead()
     {
         // 检测写事件
         m_channel->setWriteEnabled(true);
-        m_dispatcher->modify(m_channel);
+        m_dispatcher->modify(m_channel.get());
     }
 }
 
@@ -113,7 +136,7 @@ void HttpConnection::CallbackProcessWrite()
         {
             unmap();
             m_channel->setWriteEnabled(false);
-            m_dispatcher->modify(m_channel);
+            m_dispatcher->modify(m_channel.get());
             if (m_alive)
             {
                 init();
@@ -127,11 +150,11 @@ void HttpConnection::CallbackProcessWrite()
 
         if (count < 0)
         {
-            // 发送缓冲区满了，返回等待写一次可写事件发生
+            // 发送缓冲区满了，返回等待一次可写事件发生
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
                 m_channel->setWriteEnabled(true);
-                m_dispatcher->modify(m_channel);
+                m_dispatcher->modify(m_channel.get());
                 return;
             }
             // 发送失败
@@ -254,7 +277,7 @@ HttpCode HttpConnection::process_read()
     oneLine.reserve(200);
     while ((line_status = get_one_line(oneLine)) == LineStatus::Line_OK)
     {
-        LOG_INFO("{}", oneLine);
+        // LOG_INFO("{}", oneLine);
         switch (m_curParseState)
         {
         case ParseState::ParseReqLine:
@@ -688,10 +711,8 @@ void HttpConnection::closeConnection()
 
     unmap();
     const int fd = m_channel->getFd();
-    Channel *channel = m_channel;
-    m_channel = nullptr;
-    m_dispatcher->remove(channel);
-    delete channel;
+    m_dispatcher->remove(m_channel.get());
+    LOG_INFO("disconnect from {}.", m_channel->getFd());
     if (m_closeCallback)
     {
         m_closeCallback(fd);

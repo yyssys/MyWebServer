@@ -2,8 +2,7 @@
 #include <cerrno>
 
 webServer::webServer(const Config &config)
-    : m_listenChannel(nullptr),
-      m_mainDispatcher(nullptr),
+    : m_mainDispatcher(nullptr),
       m_threadPool(nullptr),
       m_config(config),
       is_use_log(config.enableLogging)
@@ -13,15 +12,14 @@ webServer::webServer(const Config &config)
 
 webServer::~webServer()
 {
-    if (m_threadPool)
-        delete m_threadPool;
     {
         std::lock_guard<std::mutex> lock(m_connectionMutex);
         m_connections.clear();
     }
+    if (m_threadPool)
+        delete m_threadPool;
     if (m_mainDispatcher)
         delete m_mainDispatcher;
-    delete m_listenChannel;
 }
 
 void webServer::run()
@@ -45,14 +43,14 @@ void webServer::run()
     // 创建线程池
     m_threadPool = new ThreadPool(m_mainDispatcher, m_config);
     // 初始化监听fd的channel实例
-    m_listenChannel = new Channel(
+    m_listenChannel.reset(new Channel(
         m_lfd,
         FDEvent::ReadEvent,
         std::bind(&webServer::acceptConnection, this),
         nullptr,
-        nullptr);
+        nullptr));
     // 将监听所用的channel加入主反应堆
-    m_mainDispatcher->add(m_listenChannel);
+    m_mainDispatcher->add(m_listenChannel.get());
 
     while (true)
     {
@@ -78,23 +76,20 @@ void webServer::acceptConnection()
         }
         char clientIp[64] = {0};
         inet_ntop(AF_INET, &client_address.sin_addr, clientIp, sizeof(clientIp));
-        LOG_INFO("建立连接,IP: {},port: {},fd: {}", clientIp, ntohs(client_address.sin_port), cfd);
+        LOG_INFO("Connection,IP: {},port: {},fd: {}", clientIp, ntohs(client_address.sin_port), cfd);
         // 从线程池中取出一个反应堆实例去处理这个cfd
         Dispatcher *dispatcher = m_threadPool->getDispatcher();
 
-        std::unique_ptr<HttpConnection> connection(new HttpConnection(
+        auto connection = std::make_shared<HttpConnection>(
             m_config,
             cfd,
             dispatcher,
-            std::bind(&webServer::removeConnection, this, std::placeholders::_1)));
-        // 加入连接队列。加锁是因为有可能子线程正在调用removeConnection释放连接
-        std::lock_guard<std::mutex> lock(m_connectionMutex);
-        m_connections.emplace(cfd, std::move(connection));
-
-        if (m_config.triggerMode != TriggerMode::ET)
+            std::bind(&webServer::removeConnection, this, std::placeholders::_1));
         {
-            return;
+            std::lock_guard<std::mutex> lock(m_connectionMutex);
+            m_connections.emplace(cfd, connection);
         }
+        connection->add();
     }
 }
 // 传给httpConnection的回调函数，用来断开连接时从webServer里面销毁连接
@@ -110,7 +105,7 @@ void webServer::setListen()
     m_lfd = socket(AF_INET, SOCK_STREAM, 0);
     if (m_lfd == -1)
     {
-        LOG_ERROR("socket error");
+        LOG_ERROR("socket error, errno: {}, errmsg: {}", errno, strerror(errno));
         return;
     }
     // 2. 设置端口复用
@@ -118,7 +113,7 @@ void webServer::setListen()
     int ret = setsockopt(m_lfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     if (ret == -1)
     {
-        LOG_ERROR("setsockopt error");
+        LOG_ERROR("setsockopt error, errno: {}, errmsg: {}", errno, strerror(errno));
         return;
     }
     // 3. 绑定
@@ -129,14 +124,14 @@ void webServer::setListen()
     ret = bind(m_lfd, (struct sockaddr *)&addr, sizeof(addr));
     if (ret == -1)
     {
-        LOG_ERROR("bind error");
-        return;
+        LOG_ERROR("bind error, errno: {}, errmsg: {}", errno, strerror(errno));
+        exit(1);
     }
     // 4. 设置监听
-    ret = listen(m_lfd, 128);
+    ret = listen(m_lfd, 4096);
     if (ret == -1)
     {
-        LOG_ERROR("listen error");
-        return;
+        LOG_ERROR("listen error, errno: {}, errmsg: {}", errno, strerror(errno));
+        exit(1);
     }
 }

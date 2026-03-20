@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <functional>
 #include <unordered_map>
 #include <sys/stat.h>
@@ -51,11 +52,10 @@ enum class HttpCode
     ReqForbidden,  // 请求的资源无权访问
     ReqFile,       // 请求文件
     ReqRedirect,   // 重定向
-    InternelError, // 内部错误
-    CLOSED_CONNECTION
+    InternelError  // 内部错误
 };
 
-class HttpConnection
+class HttpConnection : public std::enable_shared_from_this<HttpConnection>
 {
 public:
     using CloseCallback = std::function<void(int)>;
@@ -66,6 +66,7 @@ public:
     void CallbackProcessRead();
     void CallbackProcessWrite();
     void CallbackProcessClose();
+    void add();
     int LTRead();
     int ETRead();
 
@@ -116,8 +117,9 @@ private:
     void closeConnection();
 
 private:
+    int m_fd;
     Dispatcher *m_dispatcher;
-    Channel *m_channel;
+    std::unique_ptr<Channel> m_channel;
     CloseCallback m_closeCallback; // 销毁当前httpConn的回调
     Buffer m_readBuf;
     Buffer m_writeBuf;

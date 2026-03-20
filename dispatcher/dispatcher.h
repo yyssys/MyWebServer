@@ -28,11 +28,11 @@ class Dispatcher
 public:
     Dispatcher(const Config &config);
     // 添加
-    virtual void add(Channel *Channel) {}
+    virtual void add(Channel *channel) {}
     // 删除
-    virtual void remove(Channel *Channel) {}
+    virtual void remove(Channel *channel) {}
     // 修改
-    virtual void modify(Channel *Channel) {}
+    virtual void modify(Channel *channel) {}
     // 事件监测
     virtual void dispatch(int timeout = 2) {} // 单位: s
 
@@ -60,8 +60,8 @@ protected:
     void initWakeupChannel();
 
     bool is_use_log;
-    std::unordered_map<int, Channel *> m_channelMap; // 非拥有指针，仅用于fd到channel的索引
-    Channel *m_wakeupChannel;
+    std::unordered_map<int, Channel *> m_channelMap;
+    std::unique_ptr<Channel> m_wakeupChannel;
     int m_wakeupFds[2]; // 唤醒套接字，0端读，1端写
     std::thread::id m_ThreadId;
     std::mutex m_QueueMutex;

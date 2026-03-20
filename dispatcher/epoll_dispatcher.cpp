@@ -6,7 +6,7 @@ EpollDispatcher::EpollDispatcher(const Config &config)
     m_epollFd = epoll_create(10);
     if (m_epollFd == -1)
     {
-        LOG_ERROR("epoll_create failed.");
+        LOG_ERROR("epoll_create error, errno: {}, errmsg: {}", errno, strerror(errno));
     }
     initWakeupChannel();
 }
@@ -40,6 +40,11 @@ void EpollDispatcher::add(Channel *channel)
 
 void EpollDispatcher::remove(Channel *channel)
 {
+    if (!isInOwnerThread())
+    {
+        LOG_ERROR("epoll remove must run in owner thread");
+        return;
+    }
     if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
     {
         return;
@@ -54,6 +59,11 @@ void EpollDispatcher::remove(Channel *channel)
 
 void EpollDispatcher::modify(Channel *channel)
 {
+    if (!isInOwnerThread())
+    {
+        LOG_ERROR("epoll modify must run in owner thread");
+        return;
+    }
     if (channel == nullptr || m_channelMap.find(channel->getFd()) == m_channelMap.end())
     {
         return;

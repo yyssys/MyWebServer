@@ -21,11 +21,11 @@ private:
     // 初始化监听
     void setListen();
     int m_lfd; // 监听的文件描述符
-    Channel *m_listenChannel;
+    std::unique_ptr<Channel> m_listenChannel;
     Dispatcher *m_mainDispatcher;
     ThreadPool *m_threadPool;
     std::mutex m_connectionMutex;
-    std::unordered_map<int, std::unique_ptr<HttpConnection>> m_connections;
+    std::unordered_map<int, std::shared_ptr<HttpConnection>> m_connections;
     Config m_config;
     bool is_use_log;
 };

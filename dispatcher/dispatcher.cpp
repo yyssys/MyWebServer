@@ -13,7 +13,6 @@ Dispatcher::Dispatcher(const Config &config) : is_use_log(config.enableLogging),
 Dispatcher::~Dispatcher()
 {
     m_channelMap.clear();
-    delete m_wakeupChannel;
     close(m_wakeupFds[1]);
 }
 
@@ -110,11 +109,11 @@ void Dispatcher::setNonBlocking(int fd)
 void Dispatcher::initWakeupChannel()
 {
     setNonBlocking(m_wakeupFds[0]);
-    m_wakeupChannel = new Channel(
+    m_wakeupChannel.reset(new Channel(
         m_wakeupFds[0],
         FDEvent::ReadEvent,
         std::bind(&Dispatcher::handleWakeup, this),
         nullptr,
-        nullptr);
-    add(m_wakeupChannel);
+        nullptr));
+    add(m_wakeupChannel.get());
 }
