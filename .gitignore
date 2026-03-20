@@ -1,6 +1,7 @@
 build
-test
 app
 .vscode
 tinyWebServer
 *.log
+WebBench
+wrk
