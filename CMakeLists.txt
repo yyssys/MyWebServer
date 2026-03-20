@@ -47,6 +47,7 @@ add_executable(tinyWebServer
     sql_conn_pool/sql_conn_pool.cpp
     threadpool/threadpool.cpp
     threadpool/worker_thread.cpp
+    timer/timer.cpp
 )
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR})

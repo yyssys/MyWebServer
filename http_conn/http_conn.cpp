@@ -88,6 +88,7 @@ void HttpConnection::add()
             }
         }));
     m_dispatcher->add(m_channel.get());
+    m_dispatcher->registerTimeout(m_channel.get());
 }
 
 void HttpConnection::CallbackProcessRead()
@@ -97,6 +98,10 @@ void HttpConnection::CallbackProcessRead()
     {
         closeConnection();
         return;
+    }
+    if (result > 0)
+    {
+        m_dispatcher->updateTimeout(m_channel.get());
     }
     // 读取到的数据已经处理完了
     if (m_readBuf.readAbleSize() <= 0)
@@ -165,6 +170,11 @@ void HttpConnection::CallbackProcessWrite()
         else if (count == 0)
         {
             return;
+        }
+
+        if (count > 0)
+        {
+            m_dispatcher->updateTimeout(m_channel.get());
         }
 
         if (count >= m_iv[0].iov_len)
@@ -711,6 +721,7 @@ void HttpConnection::closeConnection()
 
     unmap();
     const int fd = m_channel->getFd();
+    m_dispatcher->removeTimeout(m_channel.get());
     m_dispatcher->remove(m_channel.get());
     LOG_INFO("Disconnect from {}.", m_channel->getFd());
     if (m_closeCallback)

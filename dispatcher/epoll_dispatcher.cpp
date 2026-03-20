@@ -35,7 +35,8 @@ void EpollDispatcher::add(Channel *channel)
         return;
     }
     // 主线程操作的话，需要先添加到阻塞队列中
-    addElement(channel);
+    queueTask([this, channel]()
+              { this->add(channel); });
 }
 
 void EpollDispatcher::remove(Channel *channel)
@@ -120,6 +121,10 @@ void EpollDispatcher::dispatch(int timeout)
         {
             channel->handleWrite();
         }
+    }
+    if (timeout)
+    {
+        processTimeout();
     }
 }
 
