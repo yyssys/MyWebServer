@@ -1,6 +1,6 @@
 # MyWebServer
 
-一个基于 C++11 实现的轻量级 Web 服务器项目，核心采用 Reactor + 线程池 模型。
+一个基于 C++11 实现的轻量级 Web 服务器项目。
 
 ## 整体流程
 
@@ -30,3 +30,60 @@
 - 子反应堆内部使用 `timerfd` 每 5 秒检查一次空闲连接
 - 支持基础的登录、注册和静态文件访问
 - 使用 `fmt` 做日志和响应字符串格式化
+
+## 压力测试
+在关闭日志后，使用wrk对服务器进行压力测试,并与 [TinyWebServer](https://github.com/qinguoyi/TinyWebServer) 做对比。
+
+wrk安装方式如下：
+```shell
+// 源码方式编译安装
+git clone https://github.com/wg/wrk.git
+cd wrk && make
+```
+> LT模式
+
+> * our
+
+<div align=center><img src="./source/MDImages/my_lt_1.png" height="201"/> </div>
+
+> * TinyWebServer
+<div align=center><img src="./source/MDImages/lt_1.png" height="201"/> </div>
+
+> ET模式
+
+> * our
+
+<div align=center><img src="./source/MDImages/my_et_2.png" height="201"/> </div>
+
+> * TinyWebServer
+<div align=center><img src="./source/MDImages/et_2.png" height="201"/> </div>
+
+## 依赖库
+
+### 1. fmt
+
+- 用于日志模块和 HTTP 响应中字符串的格式化
+- 项目中使用的是 `fmt::format(...)`
+
+Ubuntu / Debian 安装命令：
+
+```shell
+sudo apt update
+sudo apt install -y libfmt-dev
+```
+
+### 2. mysqlcppconn
+
+- 即 MySQL Connector/C++
+- 用于 `sql_conn_pool/` 和 `http_conn/` 中的数据库访问
+- 主要提供 `sql::Connection`、`PreparedStatement`、`ResultSet` 等接口
+
+Ubuntu / Debian 安装命令：
+
+```shell
+sudo apt update
+sudo apt install -y libmysqlcppconn-dev
+```
+## 致谢
+感谢 [qinguoyi/TinyWebServer](https://github.com/qinguoyi/TinyWebServer) 开源项目提供的思路参考。  
+同时感谢丙哥的技术分享与教程，博客地址：[https://subingwen.cn/](https://subingwen.cn/)
