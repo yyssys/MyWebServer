@@ -56,7 +56,16 @@ cd wrk && make
 <div align=center><img src="./source/MDImages/my_et_2.png" height="201"/> </div>
 
 > * TinyWebServer
+
 <div align=center><img src="./source/MDImages/et_2.png" height="201"/> </div>
+
+poll压力测试
+
+<div align=center><img src="./source/MDImages/poll.png" height="201"/> </div>
+
+select压力测试
+
+<div align=center><img src="./source/MDImages/select.png" height="201"/> </div>
 
 ## 依赖库
 
@@ -83,6 +92,32 @@ Ubuntu / Debian 安装命令：
 ```shell
 sudo apt update
 sudo apt install -y libmysqlcppconn-dev
+```
+
+## 启动参数说明
+
+
+| 参数 | 长参数 | 说明 | 默认值 |
+| --- | --- | --- | --- |
+| `-p` | `--port` | 监听端口 | `10000` |
+| `-l` | `--log-enable` | 是否开启日志，支持 `0/1`、`true/false` | `1` |
+| `-m` | `--log-mode` | 日志模式，支持 `sync` / `async` | `sync` |
+| `-s` | `--sql-connections` | 数据库连接池大小 | `8` |
+| `-t` | `--threads` | 工作线程数量 | `hardware_concurrency()` |
+| `-r` | `--reactor` | I/O 复用后端，支持 `epoll` / `poll` / `select` | `epoll` |
+| `-g` | `--trigger` | 触发模式，支持 `lt` / `et` | `lt` |
+| `-h` | `--help` | 打印帮助信息 | 无 |
+
+说明：
+
+- 当 `threads=0` 时，不创建子线程，由主反应堆直接处理连接
+- `poll` 和 `select` 模式下不会使用 ET，程序会自动退回到 `LT`
+- `trigger=et` 只有在 `reactor=epoll` 时才真正生效
+
+启动示例：
+
+```shell
+./tinyWebServer -p 8080 -l 1 -m async -s 8 -t 4 -r epoll -g et
 ```
 ## 致谢
 感谢 [qinguoyi/TinyWebServer](https://github.com/qinguoyi/TinyWebServer) 开源项目提供的思路参考。  
