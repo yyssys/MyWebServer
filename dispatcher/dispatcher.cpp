@@ -143,7 +143,7 @@ void Dispatcher::handleAlarm()
         const ssize_t ret = read(m_timerfd, &expirations, sizeof(expirations));
         if (ret > 0)
         {
-            LOG_INFO("Timer expired {} times", expirations);
+            // LOG_INFO("Timer expired {} times", expirations);
             continue;
         }
         if (ret == 0)
