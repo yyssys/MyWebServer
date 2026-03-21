@@ -135,7 +135,7 @@ void HttpConnection::CallbackProcessRead()
 void HttpConnection::CallbackProcessWrite()
 {
     while (true)
-    {
+    {   
         const int bytes_to_send = m_iv[0].iov_len + (m_iv_count == 2 ? m_iv[1].iov_len : 0);
         if (bytes_to_send <= 0)
         {

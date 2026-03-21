@@ -1,8 +1,9 @@
 #include "dispatcher.h"
 
-Dispatcher::Dispatcher(const Config &config, bool enableTimer) : is_use_log(config.enableLogging), m_wakeupChannel(nullptr),
-                                               m_wakeupFds{-1, -1}, m_timerfd(-1), m_ThreadId(std::this_thread::get_id()),
-                                               m_config(config), timeout(false), m_enableTimer(enableTimer)
+Dispatcher::Dispatcher(const Config &config, bool enableTimer)
+    : is_use_log(config.enableLogging), m_wakeupChannel(nullptr), m_wakeupFds{-1, -1},
+      m_timer(config.enableLogging), m_timerfd(-1), m_ThreadId(std::this_thread::get_id()),
+      m_config(config), timeout(false), m_enableTimer(enableTimer)
 {
     if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_wakeupFds) != 0)
     {

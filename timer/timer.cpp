@@ -5,6 +5,7 @@ void Timer::addOrUpdate(int fd, time_t expireTime)
     auto iter = m_index.find(fd);
     if (iter != m_index.end())
     {
+        LOG_INFO("adjust timer fd {}", fd);
         m_list.erase(iter->second);
         m_index.erase(iter);
     }

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图片测试页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #eef2ff 0%, #f8f9ff 100%);
+            color: #333;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .header {
+            height: 70px;
+            background: linear-gradient(90deg, #5b7cfa, #7b4bb7);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        .header .title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        .main {
+            max-width: 1100px;
+            margin: 36px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 22px 24px 10px;
+        }
+
+        .card-header h2 {
+            font-size: 28px;
+            color: #222;
+            margin-bottom: 8px;
+        }
+
+        .card-header p {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .preview-box {
+            padding: 20px 24px 10px;
+        }
+
+        .main-image-wrap {
+            width: 100%;
+            height: 500px;
+            background: #f3f4f6;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-image-wrap img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .thumb-list {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 20px 24px 28px;
+        }
+
+        .thumb-item {
+            width: 140px;
+            height: 90px;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: #f3f4f6;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .thumb-item:hover {
+            transform: translateY(-2px);
+            border-color: #5b7cfa;
+            box-shadow: 0 6px 18px rgba(91, 124, 250, 0.2);
+        }
+
+        .thumb-item.active {
+            border-color: #5b7cfa;
+        }
+
+        .thumb-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            color: #777;
+            font-size: 13px;
+            padding: 24px 0 18px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                height: 60px;
+                padding: 0 16px;
+            }
+
+            .header .title {
+                font-size: 20px;
+            }
+
+            .card-header h2 {
+                font-size: 22px;
+            }
+
+            .main-image-wrap {
+                height: 280px;
+            }
+
+            .thumb-item {
+                width: calc(50% - 7px);
+                height: 90px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .thumb-item {
+                width: 100%;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="title">图片测试页面</div>
+        <a href="index.html" class="back-btn">返回首页</a>
+    </header>
+
+    <main class="main">
+        <div class="card">
+            <div class="card-header">
+                <h2>图片预览测试</h2>
+                <p>
+                    也没有描述哈哈哈。
+                </p>
+            </div>
+
+            <div class="preview-box">
+                <div class="main-image-wrap">
+                    <img id="mainImage" src="1.jpg" alt="测试图片">
+                </div>
+            </div>
+
+            <div class="thumb-list">
+                <div class="thumb-item active" onclick="changeImage(this, '1.jpg')">
+                    <img src="1.jpg" alt="缩略图1">
+                </div>
+                <div class="thumb-item" onclick="changeImage(this, '2.jpg')">
+                    <img src="2.jpg" alt="缩略图2">
+                </div>
+                <div class="thumb-item" onclick="changeImage(this, '3.jpg')">
+                    <img src="3.jpg" alt="缩略图3">
+                </div>
+                <div class="thumb-item" onclick="changeImage(this, '4.jpg')">
+                    <img src="4.jpg" alt="缩略图4">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        © 2026 C++ Learning Home
+    </footer>
+
+    <script>
+        function changeImage(element, imageSrc) {
+            document.getElementById("mainImage").src = imageSrc;
+
+            const items = document.querySelectorAll(".thumb-item");
+            items.forEach(item => item.classList.remove("active"));
+
+            element.classList.add("active");
+        }
+    </script>
+
+</body>
+
+</html>
