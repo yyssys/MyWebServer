@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>视频播放</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #eef2ff 0%, #f8f9ff 100%);
+            color: #333;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .header {
+            height: 70px;
+            background: linear-gradient(90deg, #5b7cfa, #7b4bb7);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        .header .title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        .main {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .player-card {
+            background: #fff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .video-wrap {
+            width: 100%;
+            background: #000;
+        }
+
+        video {
+            display: block;
+            width: 100%;
+            max-height: 560px;
+            background: #000;
+        }
+
+        .info {
+            padding: 24px;
+        }
+
+        .info h2 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: #222;
+        }
+
+        .info p {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #666;
+        }
+
+        .action-btn {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #5b7cfa, #7b4bb7);
+            color: #fff;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            opacity: 0.92;
+        }
+
+        .footer {
+            text-align: center;
+            color: #777;
+            font-size: 13px;
+            padding: 24px 0 18px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                height: 60px;
+                padding: 0 16px;
+            }
+
+            .header .title {
+                font-size: 20px;
+            }
+
+            .info {
+                padding: 18px;
+            }
+
+            .info h2 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="title">视频播放页面</div>
+        <a href="index.html" class="back-btn">返回首页</a>
+    </header>
+
+    <main class="main">
+        <div class="player-card">
+            <div class="video-wrap">
+                <!-- 把 src 改成你自己的视频路径 -->
+                <video controls autoplay>
+                    <source src="video.mp4" type="video/mp4">
+                    您的浏览器不支持 HTML5 视频播放。
+                </video>
+            </div>
+
+            <div class="info">
+                <h2>没有标题</h2>
+                <p>
+                    也没有描述哈哈哈。
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        © 2026 C++ Learning Home
+    </footer>
+
+</body>
+
+</html>
